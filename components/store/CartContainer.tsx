@@ -41,6 +41,16 @@ export default function CartContainer({ settings }: CartContainerProps) {
   const [mounted, setMounted] = useState(false);
   const [timeLeftStr, setTimeLeftStr] = useState('');
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+
+  // Clear confirmation auto-reset timer
+  useEffect(() => {
+    if (!isConfirmingClear) return;
+    const timer = setTimeout(() => {
+      setIsConfirmingClear(false);
+    }, 3000); // Reset after 3 seconds
+    return () => clearTimeout(timer);
+  }, [isConfirmingClear]);
 
   useEffect(() => {
     setMounted(true);
@@ -791,39 +801,89 @@ export default function CartContainer({ settings }: CartContainerProps) {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
           {/* Header */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-3 gap-x-4 mb-2">
-            <Link href="/" className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-[#e94560] transition-colors whitespace-nowrap">
-              <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Continue Shopping</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-[#e94560]" />
-              <h1 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                Cart <span className="text-gray-400 font-semibold text-sm">({itemCount})</span>
-                {/* Cart Expiry Timer Indicator */}
-                {settings.cart_timer_enabled !== false && cartCreatedAt && timeLeftStr && (
-                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold ml-2 ${
-                    isTimerExpired
-                      ? 'text-rose-500 bg-rose-500/10 dark:text-rose-400'
-                      : 'text-amber-600 bg-amber-500/10 dark:text-amber-400'
-                  }`}>
-                    <Clock className="w-3.5 h-3.5 shrink-0 animate-pulse" />
-                    <span>
-                      {isTimerExpired ? "Reservation expired!" : `Reserved for ${timeLeftStr}`}
-                    </span>
-                  </div>
-                )}
-              </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+            {/* Top Row on Mobile: Back Link (Left) & Clear Button (Right) */}
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-[#e94560] transition-colors whitespace-nowrap min-h-[44px] px-2 -ml-2 select-none"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Continue Shopping</span>
+                <span className="sm:hidden">Back</span>
+              </Link>
+              
+              <div className="sm:hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isConfirmingClear) {
+                      clearCart();
+                      toast.success('Cart cleared');
+                      setIsConfirmingClear(false);
+                    } else {
+                      setIsConfirmingClear(true);
+                    }
+                  }}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all duration-200 min-h-[44px] select-none cursor-pointer border ${
+                    isConfirmingClear
+                      ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20 scale-105 active:scale-95'
+                      : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:text-[#e94560] hover:border-[#e94560]/30 dark:hover:border-[#e94560]/30 active:scale-95'
+                  }`}
+                >
+                  <Trash2 className={`h-3.5 w-3.5 transition-transform ${isConfirmingClear ? 'animate-bounce text-white' : ''}`} />
+                  <span>{isConfirmingClear ? 'Tap to Confirm' : 'Clear'}</span>
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => { if (confirm('Clear all items from cart?')) { clearCart(); toast.success('Cart cleared'); } }}
-              className="text-xs font-bold text-gray-400 hover:text-[#e94560] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Clear
-            </button>
+
+            {/* Bottom Row on Mobile / Center on Desktop: Title and Expiry Timer */}
+            <div className="flex flex-wrap items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-[#e94560]" />
+                <h1 className="text-xl sm:text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                  Cart <span className="text-gray-400 font-semibold text-sm">({itemCount})</span>
+                </h1>
+              </div>
+
+              {/* Cart Expiry Timer Indicator */}
+              {settings.cart_timer_enabled !== false && cartCreatedAt && timeLeftStr && (
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  isTimerExpired
+                    ? 'text-rose-500 bg-rose-500/10 dark:text-rose-400/90'
+                    : 'text-amber-600 bg-amber-500/10 dark:text-amber-400/90'
+                }`}>
+                  <Clock className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+                  <span>
+                    {isTimerExpired ? "Reservation expired!" : `Reserved for ${timeLeftStr}`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Clear Button (Hidden on Mobile) */}
+            <div className="hidden sm:block">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isConfirmingClear) {
+                    clearCart();
+                    toast.success('Cart cleared');
+                    setIsConfirmingClear(false);
+                  } else {
+                    setIsConfirmingClear(true);
+                  }
+                }}
+                className={`px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all duration-200 min-h-[44px] select-none cursor-pointer border ${
+                  isConfirmingClear
+                    ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20 scale-105 active:scale-95'
+                    : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:text-[#e94560] hover:border-[#e94560]/30 dark:hover:border-[#e94560]/30 active:scale-95'
+                }`}
+              >
+                <Trash2 className={`h-3.5 w-3.5 transition-transform ${isConfirmingClear ? 'animate-bounce text-white' : ''}`} />
+                <span>{isConfirmingClear ? 'Confirm Clear?' : 'Clear'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Main grid */}
