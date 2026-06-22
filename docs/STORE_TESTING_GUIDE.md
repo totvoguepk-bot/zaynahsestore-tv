@@ -297,6 +297,27 @@ Fix: page.tsx mein export const revalidate = 86400 check karo
 
 ---
 
+## Test 14 — Database Cache Validation (unstable_cache)
+
+Next.js server-side caching (`unstable_cache`) is active for all database queries (both local development and production) to ensure instant page delivery.
+
+### Verification Steps:
+1. **Response Time Comparison (Dev Mode / Production):**
+   - Run the local dev server (`npm run dev`).
+   - Reload the storefront page `/`. The first render fetches settings, products, categories, sections, and reviews from Supabase (~300ms–800ms depending on API latency).
+   - Refresh the page. It will load **instantly** (under 15ms) because all query payloads are retrieved directly from the memory cache.
+
+2. **On-Demand Tag Revalidation Check:**
+   - Go to the admin settings panel `/admin/settings`, modify a value (e.g., store name or header greeting text), and click **Save**.
+   - This fires `revalidateSettings()` which invalidates the following tags: `settings`, `homepage`, `homepage_sections`, `products`, `categories`, `banners`.
+   - Refresh the storefront `/`. The very first render queries the database once to rebuild the cached settings, and subsequent loads are fully cached/instant again.
+
+3. **Query Deduplication Verification:**
+   - Because `unstable_cache` is utilized across Layout and Page routes (e.g., both calls to `getSettings()`), Next.js automatically memoizes the requests.
+   - Verify in your terminal logs that only one database select query is executed per tag, even if requested multiple times during a single page render.
+
+---
+
 ## 📈 Test Execution Report (2026-06-21)
 - **Score:** 100/100 (Perfect Score)
 - **Status:** PASS
