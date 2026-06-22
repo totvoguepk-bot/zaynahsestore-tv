@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20 Ultimate Surprise Product Cards</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pacifico&family=Space+Mono:wght@400;700&family=VT323&family=Rye&family=Creepster&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & BASE STYLES
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: sans-serif;
+            background-color: #121212; /* Dark bg to make crazy themes pop */
+            color: #fff;
+            padding: 4rem 1rem;
+        }
+        
+        .header { text-align: center; margin-bottom: 5rem; }
+        .header h1 { font-size: 3rem; background: linear-gradient(90deg, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: #aaa; font-size: 1.1rem; margin-top: 10px;}
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Structure */
+        .card {
+            position: relative; display: flex; flex-direction: column;
+            height: 480px; overflow: hidden; transition: 0.3s;
+        }
+        .img-box {
+            position: relative; width: 100%; height: 220px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .img-box img { max-width: 85%; max-height: 85%; object-fit: contain; transition: 0.5s; }
+        .card-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+        
+        .reviews { font-size: 0.85rem; margin-bottom: 10px; display: flex; gap: 5px; align-items: center;}
+        .colors { display: flex; gap: 8px; align-items: center; margin-top: auto; }
+        .swatch { width: 18px; height: 18px; cursor: pointer; transition: 0.2s; border-radius: 50%; }
+        .action-bar { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; cursor: pointer; transition: 0.3s; border: none; border-radius: 5px; }
+
+        /* =========================================
+           1. DARK ACADEMIA / GOTHIC
+           ========================================= */
+        .card-goth { background: #1a0b0b; color: #d4af37; border: 4px double #5a0000; border-radius: 10px; font-family: 'Cinzel', serif;}
+        .card-goth .img-box { background: #261111; border-bottom: 2px solid #5a0000;}
+        .card-goth .action-btn { background: #3d0000; color: #d4af37; border: 1px solid #d4af37; }
+        .card-goth .action-btn:hover { background: #d4af37; color: #1a0b0b; }
+        .card-goth .swatch { border: 1px solid #d4af37; border-radius: 0; transform: rotate(45deg);}
+
+        /* =========================================
+           2. VAPORWAVE / MIAMI 80s
+           ========================================= */
+        .card-vapor { background: linear-gradient(180deg, #ff71ce 0%, #01cdfe 100%); color: #fff; font-family: 'Space Mono', monospace; border-radius: 0; box-shadow: 10px 10px 0 #b967ff;}
+        .card-vapor .img-box { background: repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,0.2) 10px, rgba(255,255,255,0.2) 20px); }
+        .card-vapor .action-btn { background: #fff; color: #ff71ce; border-radius: 0; }
+        .card-vapor .swatch { border-radius: 0; border: 2px solid #fff; }
+
+        /* =========================================
+           3. ARCHITECT BLUEPRINT
+           ========================================= */
+        .card-blue { background: #003366; color: #fff; font-family: 'Space Mono', monospace; border: 2px solid #fff; 
+                     background-image: linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 20px 20px;}
+        .card-blue .img-box img { filter: brightness(0) invert(1) opacity(0.8); } /* Makes image look like blueprint outline */
+        .card-blue .action-btn { background: transparent; color: #fff; border: 1px solid #fff; border-radius: 0; }
+        .card-blue .swatch { border-radius: 0; border: 1px solid #fff; background: transparent !important; }
+
+        /* =========================================
+           4. MATRIX HACKER TERMINAL
+           ========================================= */
+        .card-matrix { background: #000; color: #0f0; font-family: 'VT323', monospace; border: 1px solid #0f0; box-shadow: 0 0 10px #0f0; }
+        .card-matrix .card-title { font-size: 1.5rem; text-shadow: 0 0 5px #0f0;}
+        .card-matrix .img-box { border-bottom: 1px dashed #0f0; }
+        .card-matrix .img-box img { filter: grayscale(100%) sepia(100%) hue-rotate(80deg) saturate(300%); }
+        .card-matrix .action-btn { background: #000; color: #0f0; border: 1px solid #0f0; border-radius: 0;}
+        .card-matrix .action-btn:hover { background: #0f0; color: #000; }
+        .card-matrix .swatch { border-radius: 0; border: 1px solid #0f0; }
+
+        /* =========================================
+           5. ART DECO / 1920s GATSBY
+           ========================================= */
+        .card-deco { background: #111; color: #f1c40f; border: 2px solid #f1c40f; font-family: 'Cinzel', serif; border-radius: 15px 15px 0 0; }
+        .card-deco .img-box { border-bottom: 2px solid #f1c40f; }
+        .card-deco .action-btn { background: transparent; color: #f1c40f; border: 1px solid #f1c40f; border-radius: 0;}
+        .card-deco .action-btn:hover { background: #f1c40f; color: #111; }
+        .card-deco .swatch { border-radius: 0; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+
+        /* =========================================
+           6. KAWAII BUBBLEGUM
+           ========================================= */
+        .card-kawaii { background: #fff0f5; color: #ff69b4; border-radius: 40px; border: 4px dotted #ffb6c1; font-family: 'Comic Sans MS', cursive, sans-serif;}
+        .card-kawaii .img-box { background: #ffe4e1; border-radius: 36px 36px 0 0; }
+        .card-kawaii .action-btn { background: #ffb6c1; color: #fff; border-radius: 50%; box-shadow: 0 4px 0 #ff69b4; }
+        .card-kawaii .action-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #ff69b4; }
+
+        /* =========================================
+           7. WILD WEST WANTED POSTER
+           ========================================= */
+        .card-west { background: #d2b48c; color: #3e2723; border: 4px dashed #8d6e63; font-family: 'Rye', serif; border-radius: 5px; box-shadow: inset 0 0 50px rgba(62, 39, 35, 0.4);}
+        .card-west .img-box { border-bottom: 4px double #8d6e63; }
+        .card-west .img-box img { filter: sepia(0.8) contrast(1.2); }
+        .card-west .card-title { font-size: 1.5rem; text-align: center; }
+        .card-west .action-btn { background: transparent; color: #3e2723; border: 2px solid #3e2723; border-radius: 0;}
+        .card-west .action-btn:hover { background: #3e2723; color: #d2b48c; }
+        .card-west .swatch { border-radius: 0; }
+
+        /* =========================================
+           8. COSMIC SPACE
+           ========================================= */
+        .card-space { background: #0b0b1a; color: #fff; border: 1px solid #4d4dff; border-radius: 20px; box-shadow: 0 0 20px rgba(77, 77, 255, 0.3); background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 30px 30px; font-family: 'Space Mono', monospace;}
+        .card-space .img-box { background: radial-gradient(circle, rgba(77,77,255,0.2), transparent); }
+        .card-space .action-btn { background: rgba(77,77,255,0.2); color: #fff; border: 1px solid #4d4dff; border-radius: 50%; }
+        .card-space .action-btn:hover { background: #4d4dff; box-shadow: 0 0 15px #4d4dff;}
+
+        /* =========================================
+           9. TAROT CARD (Mystic Arch)
+           ========================================= */
+        .card-tarot { background: #191970; color: #ffd700; border: 2px solid #ffd700; border-radius: 150px 150px 10px 10px; font-family: 'Playfair Display', serif; }
+        .card-tarot .img-box { background: transparent; border-bottom: 1px solid #ffd700; padding-top: 50px;}
+        .card-tarot .card-title { text-align: center; font-size: 1.4rem; letter-spacing: 2px;}
+        .card-tarot .action-bar { justify-content: center; }
+        .card-tarot .action-btn { background: transparent; color: #ffd700; border: 1px solid #ffd700; border-radius: 50%; }
+
+        /* =========================================
+           10. TOXIC BIOHAZARD
+           ========================================= */
+        .card-toxic { background: #111; color: #adff2f; border: 4px solid #adff2f; font-family: 'Arial Black', sans-serif;}
+        .card-toxic .img-box { background: repeating-linear-gradient(45deg, #000, #000 10px, #adff2f 10px, #adff2f 20px); padding: 5px;}
+        .card-toxic .img-box img { background: #111; width: 100%; height: 100%; object-fit: contain; padding: 10px;}
+        .card-toxic .action-btn { background: #adff2f; color: #000; border-radius: 0; }
+        .card-toxic .swatch { border-radius: 0; border: 2px solid #adff2f;}
+
+        /* =========================================
+           11. ZEN MINIMAL (Japandi)
+           ========================================= */
+        .card-zen { background: #faf9f6; color: #5c5c5c; border-left: 6px solid #8fbc8f; border-radius: 0; font-family: sans-serif; box-shadow: 5px 5px 15px rgba(0,0,0,0.05);}
+        .card-zen .img-box { background: #fff; }
+        .card-zen .action-btn { background: #f0f0f0; color: #5c5c5c; border-radius: 50%; }
+        .card-zen .action-btn:hover { background: #8fbc8f; color: #fff; }
+
+        /* =========================================
+           12. NEON NIGHTCLUB
+           ========================================= */
+        .card-neon { background: #0a0a0a; color: #fff; border: 2px solid #ff00ff; border-radius: 10px; box-shadow: 0 0 10px #ff00ff, inset 0 0 10px #ff00ff; font-family: sans-serif;}
+        .card-neon .card-title { color: #00ffff; text-shadow: 0 0 8px #00ffff; }
+        .card-neon .img-box { border-bottom: 2px solid #ff00ff; }
+        .card-neon .action-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; box-shadow: 0 0 5px #ff00ff;}
+        .card-neon .action-btn:hover { background: #ff00ff; color: #fff; }
+
+        /* =========================================
+           13. NEWSPAPER EDITORIAL
+           ========================================= */
+        .card-news { background: #f4f4f4; color: #000; border: 1px solid #000; font-family: 'Times New Roman', Times, serif; border-radius: 0;}
+        .card-news .img-box { border-bottom: 3px double #000; filter: grayscale(100%); }
+        .card-news .card-title { font-size: 1.8rem; border-bottom: 1px solid #000; margin-bottom: 5px;}
+        .card-news .action-bar { border-top: 1px solid #000; padding-top: 10px; }
+        .card-news .action-btn { background: #fff; color: #000; border: 1px solid #000; border-radius: 0; }
+        .card-news .action-btn:hover { background: #000; color: #fff;}
+        .card-news .swatch { border-radius: 0; border: 1px solid #000; }
+
+        /* =========================================
+           14. 70s GROOVY RETRO
+           ========================================= */
+        .card-groovy { background: #d2691e; color: #fff; font-family: 'Pacifico', cursive; border-radius: 50px 0 50px 0; border: 3px solid #8b4513;}
+        .card-groovy .img-box { background: #f4a460; border-radius: 46px 0 0 0; }
+        .card-groovy .action-btn { background: #8b4513; color: #fff; border-radius: 50%; }
+        .card-groovy .swatch { border: 2px solid #fff; }
+
+        /* =========================================
+           15. X-RAY SCANNER
+           ========================================= */
+        .card-xray { background: #001111; color: #00ffff; border: 1px solid #00ffff; font-family: monospace; border-radius: 15px;}
+        .card-xray .img-box { background: #000; }
+        .card-xray .img-box img { filter: invert(1) hue-rotate(180deg) brightness(1.5); } /* X-ray effect */
+        .card-xray .action-btn { background: rgba(0,255,255,0.1); color: #00ffff; border: 1px solid #00ffff; }
+
+        /* =========================================
+           16. PIRATE TREASURE MAP
+           ========================================= */
+        .card-pirate { background: #deb887; color: #5c3a21; border: 2px dashed #8b4513; font-family: 'Creepster', cursive; border-radius: 5px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5);}
+        .card-pirate .img-box { background: #f5deb3; border-bottom: 2px solid #8b4513; }
+        .card-pirate .card-title { font-size: 1.6rem; letter-spacing: 1px;}
+        .card-pirate .action-btn { background: #8b4513; color: #deb887; border-radius: 50%; }
+
+        /* =========================================
+           17. STAINED GLASS CATHEDRAL
+           ========================================= */
+        .card-glass { background: #111; color: #fff; border: 4px solid #000; border-radius: 0; box-shadow: inset 0 0 20px rgba(0,0,255,0.5);}
+        .card-glass .img-box { background: linear-gradient(45deg, #ff0000 25%, #00ff00 25%, #00ff00 50%, #0000ff 50%, #0000ff 75%, #ffff00 75%); border-bottom: 4px solid #000;}
+        .card-glass .img-box img { background: #111; width: 90%; height: 90%; border: 2px solid #000;}
+        .card-glass .action-btn { background: #000; color: #fff; border: 1px solid #555; border-radius: 0; }
+
+        /* =========================================
+           18. HOLOGRAPHIC FOIL BORDER
+           ========================================= */
+        .card-holo { background: linear-gradient(135deg, red, orange, yellow, green, blue, indigo, violet); padding: 4px; border-radius: 16px;}
+        .card-holo .inner { background: #fff; color: #111; height: 100%; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;}
+        .card-holo .img-box { background: #f9f9f9; }
+        .card-holo .action-btn { background: #111; color: #fff; border-radius: 50%; }
+
+        /* =========================================
+           19. 90s PLAID GRUNGE (Punk)
+           ========================================= */
+        .card-plaid { background: repeating-linear-gradient(transparent, transparent 10px, rgba(255,0,0,0.2) 10px, rgba(255,0,0,0.2) 20px), repeating-linear-gradient(90deg, #111, #111 10px, rgba(255,0,0,0.2) 10px, rgba(255,0,0,0.2) 20px); color: #fff; font-family: 'Arial Black', sans-serif; border: 2px solid #fff;}
+        .card-plaid .img-box { background: #fff; }
+        .card-plaid .img-box img { filter: contrast(1.5) grayscale(50%); }
+        .card-plaid .action-btn { background: #ff0000; color: #fff; border-radius: 0; border: 2px solid #fff; }
+
+        /* =========================================
+           20. CANDY CANE / FESTIVE
+           ========================================= */
+        .card-candy { background: #fff; color: #d32f2f; border: 4px solid #d32f2f; border-radius: 20px; font-family: 'Pacifico', cursive; }
+        .card-candy .img-box { background: repeating-linear-gradient(45deg, #fff, #fff 15px, #d32f2f 15px, #d32f2f 30px); padding: 10px;}
+        .card-candy .img-box img { background: #fff; width: 100%; height: 100%; border-radius: 10px; padding: 10px;}
+        .card-candy .action-btn { background: #d32f2f; color: #fff; border-radius: 50%; }
+        .card-candy .swatch { border: 2px solid #d32f2f; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>20 Surprising Themes</h1>
+        <p>Tarot, X-Ray, Matrix, Blueprint & More!</p>
+    </div>
+
+    <div class="card-grid">
+
+        <!-- 1. Dark Academia -->
+        <div class="card card-goth">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ (Mystic)</div>
+                <h3 class="card-title">Gothic Stride</h3>
+                <p class="card-price">$120.00</p>
+                <div class="colors"><div class="swatch" style="background:#5a0000;"></div><div class="swatch" style="background:#000;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 2. Vaporwave -->
+        <div class="card card-vapor">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">♥♥♥♥♥ 99+</div>
+                <h3 class="card-title">A E S T H E T I C</h3>
+                <p class="card-price">¥ 8500</p>
+                <div class="colors"><div class="swatch" style="background:#01cdfe;"></div><div class="swatch" style="background:#ff71ce;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 3. Architect Blueprint -->
+        <div class="card card-blue">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">REV: A (5.0)</div>
+                <h3 class="card-title">STRUCT_01</h3>
+                <p class="card-price">EST. $140</p>
+                <div class="colors"><div class="swatch"></div><div class="swatch"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 4. Matrix Hacker -->
+        <div class="card card-matrix">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">RATING: 10101</div>
+                <h3 class="card-title">NEO.KICKS.exe</h3>
+                <p class="card-price">BTC 0.005</p>
+                <div class="colors"><div class="swatch" style="background:#0f0;"></div><div class="swatch" style="background:#003300;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 5. Art Deco / Gatsby -->
+        <div class="card card-deco">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ (Elite)</div>
+                <h3 class="card-title">The Gatsby Stride</h3>
+                <p class="card-price">$250.00</p>
+                <div class="colors"><div class="swatch" style="background:#f1c40f;"></div><div class="swatch" style="background:#fff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 6. Kawaii Bubblegum -->
+        <div class="card card-kawaii">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">🌸🌸🌸🌸🌸 (So Cute!)</div>
+                <h3 class="card-title">Bubblegum Pop</h3>
+                <p class="card-price">$65.00</p>
+                <div class="colors"><div class="swatch" style="background:#ffb6c1;"></div><div class="swatch" style="background:#87cefa;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 7. Wild West Wanted -->
+        <div class="card card-west">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ (Outlaw)</div>
+                <h3 class="card-title">WANTED: KICKS</h3>
+                <p class="card-price" style="text-align: center; font-size: 1.5rem;">REWARD $500</p>
+                <div class="colors"><div class="swatch" style="background:#3e2723;"></div><div class="swatch" style="background:#8d6e63;"></div></div>
+                <div class="action-bar"><button class="action-btn" style="flex:1;">Claim Reward</button></div>
+            </div>
+        </div>
+
+        <!-- 8. Cosmic Space -->
+        <div class="card card-space">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★ ★ ★ ★ ★ (Galaxy)</div>
+                <h3 class="card-title">Nebula Walk</h3>
+                <p class="card-price">Credits: 120</p>
+                <div class="colors"><div class="swatch" style="background:#4d4dff;"></div><div class="swatch" style="background:#fff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 9. Tarot Card -->
+        <div class="card card-tarot">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews" style="justify-content:center;">✧✧✧✧✧</div>
+                <h3 class="card-title">THE MAGICIAN</h3>
+                <p class="card-price" style="text-align: center;">$111.00</p>
+                <div class="colors" style="justify-content:center;"><div class="swatch" style="background:#ffd700;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 10. Toxic Biohazard -->
+        <div class="card card-toxic">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">HAZARD LEVEL: 5</div>
+                <h3 class="card-title">RAD-RUNNER</h3>
+                <p class="card-price">$90.00</p>
+                <div class="colors"><div class="swatch" style="background:#adff2f;"></div><div class="swatch" style="background:#000;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 11. Zen Minimal -->
+        <div class="card card-zen">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ (Peace)</div>
+                <h3 class="card-title">Lotus Step</h3>
+                <p class="card-price">$80.00</p>
+                <div class="colors"><div class="swatch" style="background:#8fbc8f;"></div><div class="swatch" style="background:#e0e0e0;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 12. Neon Nightclub -->
+        <div class="card card-neon">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews" style="color:#ff00ff;">★★★★★ 9.9</div>
+                <h3 class="card-title">Midnight Club</h3>
+                <p class="card-price" style="color:#00ffff;">$130.00</p>
+                <div class="colors"><div class="swatch" style="background:#ff00ff;"></div><div class="swatch" style="background:#00ffff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 13. Newspaper Editorial -->
+        <div class="card card-news">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">Vol 1. Issue 4</div>
+                <h3 class="card-title">THE CLASSIC</h3>
+                <p class="card-price">Price: $95.00</p>
+                <div class="colors"><div class="swatch" style="background:#000;"></div><div class="swatch" style="background:#777;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 14. 70s Groovy Retro -->
+        <div class="card card-groovy">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ Far Out!</div>
+                <h3 class="card-title" style="font-size: 1.5rem;">Funky Town Walk</h3>
+                <p class="card-price">$70.00</p>
+                <div class="colors"><div class="swatch" style="background:#8b4513;"></div><div class="swatch" style="background:#ffcc00;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 15. X-Ray Scanner -->
+        <div class="card card-xray">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">SCAN: CLEAR</div>
+                <h3 class="card-title">BONE_STRC V1</h3>
+                <p class="card-price">$180.00</p>
+                <div class="colors"><div class="swatch" style="background:#00ffff;"></div><div class="swatch" style="background:#fff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 16. Pirate Treasure Map -->
+        <div class="card card-pirate">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">X MARKS THE SPOT</div>
+                <h3 class="card-title">Captain's Boot</h3>
+                <p class="card-price">50 Gold Coins</p>
+                <div class="colors"><div class="swatch" style="background:#8b4513;"></div><div class="swatch" style="background:#000;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 17. Stained Glass Cathedral -->
+        <div class="card card-glass">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ Divine</div>
+                <h3 class="card-title">Sanctuary Kicks</h3>
+                <p class="card-price">$210.00</p>
+                <div class="colors"><div class="swatch" style="background:#ff0000;"></div><div class="swatch" style="background:#0000ff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 18. Holographic Foil Border -->
+        <div class="card card-holo">
+            <div class="inner">
+                <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+                <div class="card-content">
+                    <div class="reviews">★★★★★ Ultra Rare</div>
+                    <h3 class="card-title">Prism Runner</h3>
+                    <p class="card-price">$160.00</p>
+                    <div class="colors"><div class="swatch" style="background:#111;"></div><div class="swatch" style="background:#aaa;"></div></div>
+                    <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 19. 90s Plaid Grunge -->
+        <div class="card card-plaid">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ Rock On</div>
+                <h3 class="card-title">PUNK ROCK KICKS</h3>
+                <p class="card-price">$75.00</p>
+                <div class="colors"><div class="swatch" style="background:#ff0000;"></div><div class="swatch" style="background:#000;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+        <!-- 20. Candy Cane / Festive -->
+        <div class="card card-candy">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★★ Sweet!</div>
+                <h3 class="card-title">Minty Fresh Steps</h3>
+                <p class="card-price">$55.00</p>
+                <div class="colors"><div class="swatch" style="background:#d32f2f;"></div><div class="swatch" style="background:#fff;"></div></div>
+                <div class="action-bar"><button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button><button class="action-btn"><i class="fa-regular fa-heart"></i></button><button class="action-btn"><i class="fa-solid fa-eye"></i></button></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

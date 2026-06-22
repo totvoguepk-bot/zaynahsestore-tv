@@ -1,0 +1,15 @@
+import { create } from 'zustand';
+
+interface SearchState {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export const useSearchStore = create<SearchState>((set) => ({
+  searchQuery: '',
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  isOpen: false,
+  setIsOpen: (isOpen) => set({ isOpen })
+}));

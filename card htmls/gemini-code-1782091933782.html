@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Next-Gen Product Cards with Advanced Hover Effects</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@700;900&family=Space+Grotesk:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & GRID RESETS
+           ========================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f111a;
+            color: #fff;
+            padding: 3rem 1rem;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, #ff7675, #74b9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #a0a5b5;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Properties */
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: #161925;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            height: 420px;
+        }
+
+        .img-box {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .img-box img {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-price {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .card-actions {
+            position: absolute;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            color: #111;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* =========================================
+           1. CYBERPUNK / NEON GLOW
+           ========================================= */
+        .card-cyber {
+            border: 2px solid #00f2fe;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+            background: #0a0c14;
+        }
+        .card-cyber .card-title { font-family: 'Orbitron', sans-serif; color: #00f2fe; }
+        .card-cyber .card-price { color: #4facfe; font-family: 'Orbitron', sans-serif; }
+        .card-cyber:hover {
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.6), inset 0 0 15px rgba(0, 242, 254, 0.2);
+            transform: scale(1.02);
+        }
+        .card-cyber .card-actions { top: 15px; right: -50px; flex-direction: column; transition: 0.3s; }
+        .card-cyber:hover .card-actions { right: 15px; }
+        .card-cyber .action-btn { background: #00f2fe; color: #000; border-radius: 0; transform: skewX(-10deg); }
+
+        /* =========================================
+           2. AURORA MESH
+           ========================================= */
+        .card-aurora {
+            background: linear-gradient(135deg, #1c142c 0%, #0c0a10 100%);
+        }
+        .card-aurora .img-box::before {
+            content: ''; position: absolute; width: 150px; height: 150px;
+            background: radial-gradient(circle, #00ff87 0%, transparent 70%);
+            top: 20px; left: 20px; filter: blur(20px); opacity: 0.3; transition: 0.5s;
+        }
+        .card-aurora:hover .img-box::before { opacity: 0.8; transform: scale(1.3); }
+        .card-aurora:hover .img-box img { transform: rotate(-5deg) scale(1.1); }
+        .card-aurora .card-price { color: #00ff87; }
+        .card-aurora .card-actions { bottom: -50px; left: 50%; transform: translateX(-50%); transition: 0.4s; }
+        .card-aurora:hover .card-actions { bottom: 20px; }
+
+        /* =========================================
+           3. VINTAGE EDITORIAL / MAGAZINE
+           ========================================= */
+        .card-vintage {
+            background: #fbf9f4; color: #2c2520; border-radius: 0; border: 1px solid #e6dfd3;
+        }
+        .card-vintage .card-title { font-family: 'Cinzel', serif; font-size: 1.4rem; }
+        .card-vintage .img-box { background: #f4f0e6; }
+        .card-vintage .card-price { color: #8c7662; }
+        .card-vintage:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(44,37,32,0.1); }
+        .card-vintage .card-actions { top: 15px; left: 15px; opacity: 0; transition: 0.3s; }
+        .card-vintage:hover .card-actions { opacity: 1; }
+        .card-vintage .action-btn { background: #2c2520; color: #fff; border-radius: 0; }
+
+        /* =========================================
+           4. Y2K CHROME PASTEL
+           ========================================= */
+        .card-y2k {
+            background: linear-gradient(45deg, #fdfff2, #e8f0fe); color: #000;
+            border: 3px solid #000; box-shadow: 6px 6px 0px #ff79c6;
+        }
+        .card-y2k .card-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+        .card-y2k:hover { transform: translate(-4px, -4px); box-shadow: 10px 10px 0px #00f2fe; }
+        .card-y2k .card-actions { bottom: 15px; right: 15px; }
+        .card-y2k .action-btn { border: 2px solid #000; background: #fff; border-radius: 8px; }
+        .card-y2k .action-btn:hover { background: #ff79c6; color: #fff; }
+
+        /* =========================================
+           5. ANIMATED BORDER-DRAW
+           ========================================= */
+        .card-border-draw {
+            background: #111424;
+        }
+        .card-border-draw::before, .card-border-draw::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 2px solid transparent; z-index: 2; pointer-events: none;
+        }
+        .card-border-draw:hover::before {
+            border-top-color: #ff9f43; border-right-color: #ff9f43;
+            transition: border-top-color 0.2s, border-right-color 0.2s 0.2s;
+        }
+        .card-border-draw:hover::after {
+            border-bottom-color: #ff9f43; border-left-color: #ff9f43;
+            transition: border-bottom-color 0.2s 0.4s, border-left-color 0.2s 0.6s;
+        }
+        .card-border-draw .card-actions { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); opacity: 0; transition: 0.3s; }
+        .card-border-draw:hover .card-actions { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        /* =========================================
+           6. SPLIT-SCREEN REVEAL
+           ========================================= */
+        .card-split .img-box { height: 100%; position: absolute; top:0; left:0; transition: 0.4s ease-in-out; background: #1a1d2e;}
+        .card-split .card-content { transform: translateY(120px); transition: 0.4s ease-in-out; background: #161925; z-index: 3;}
+        .card-split:hover .img-box { height: 180px; }
+        .card-split:hover .card-content { transform: translateY(0); }
+        .card-split .card-actions { top: 20px; right: 20px; opacity:0; transition: 0.3s;}
+        .card-split:hover .card-actions { opacity: 1;}
+
+        /* =========================================
+           7. LIQUID BLOB MORPH
+           ========================================= */
+        .card-blob { background: #131622; }
+        .card-blob .blob-bg {
+            position: absolute; width: 180px; height: 180px; background: #ff4757;
+            border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+            top: 30px; left: 50%; transform: translateX(-50%); z-index: 0; transition: 0.6s; opacity: 0.2;
+        }
+        .card-blob:hover .blob-bg {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            transform: translateX(-50%) scale(1.2) rotate(45deg);
+            background: #ff6b81; opacity: 0.4;
+        }
+        .card-blob .img-box img { z-index: 1; }
+        .card-blob:hover .img-box img { transform: translateY(-10px); }
+
+        /* =========================================
+           8. RETRO WINDOWS 95 / PIXEL
+           ========================================= */
+        .card-win95 {
+            background: #c0c0c0; color: #000; border: 3px solid;
+            border-color: #fff #808080 #808080 #fff; border-radius: 0; padding: 6px;
+        }
+        .card-win95 .img-box { background: #808080; border: 2px solid inset; border-color: #808080 #fff #fff #808080; }
+        .card-win95 .card-title { font-family: monospace; font-size: 1.1rem; font-weight: bold; }
+        .card-win95 .action-btn {
+            border-radius: 0; border: 2px solid; border-color: #fff #404040 #404040 #fff;
+            background: #c0c0c0; color: #000; box-shadow: none;
+        }
+        .card-win95 .action-btn:active { border-color: #404040 #fff #fff #404040; padding-top: 2px; }
+        .card-win95 .card-actions { bottom: 12px; right: 12px; }
+
+        /* =========================================
+           9. GLASS ICE / FROSTED FLOATING
+           ========================================= */
+        .card-ice-wrap {
+            background: linear-gradient(225deg, #13182e, #3b5998); padding: 10px; border-radius: 24px;
+        }
+        .card-ice {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px); border-radius: 20px;
+        }
+        .card-ice:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .card-ice .card-actions { top: 15px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; transition: 0.3s;}
+        .card-ice:hover .card-actions { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .card-ice .action-btn { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(5px); }
+
+        /* =========================================
+           10. COMIC / MANGA CELL SHADING
+           ========================================= */
+        .card-comic {
+            background: #fff; color: #000; border: 4px solid #000; border-radius: 0;
+        }
+        .card-comic .img-box { background: #f6e58d; border-bottom: 4px solid #000; }
+        .card-comic .card-title { font-family: 'Space Grotesk', sans-serif; font-weight:900; text-transform: uppercase;}
+        .card-comic .card-price { background: #000; color: #fff; display: inline-block; padding: 2px 8px; transform: rotate(-2deg); width: fit-content;}
+        .card-comic .action-btn { border: 3px solid #000; border-radius: 0; background: #ffbe76;}
+        .card-comic .action-btn:hover { background: #ff7675; transform: scale(1.1) rotate(5deg); }
+        .card-comic .card-actions { top: 15px; right: 15px; flex-direction: column;}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Next-Gen Product Cards</h1>
+        <p>10 Brand New Aesthetics • Advanced Micro-Interactions • Pure CSS</p>
+    </div>
+
+    <div class="card-grid">
+
+        <!-- 1. Cyberpunk -->
+        <div class="card card-cyber">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-regular fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-bolt"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">NEON CYBER X</h3>
+                <p class="card-price">$189.99</p>
+            </div>
+        </div>
+
+        <!-- 2. Aurora Mesh -->
+        <div class="card card-aurora">
+            <div class="img-box">
+                <div class="blob-bg"></div>
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-basket-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Aurora Glow Max</h3>
+                <p class="card-price">$120.00</p>
+            </div>
+        </div>
+
+        <!-- 3. Vintage Editorial -->
+        <div class="card card-vintage">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Cart"><i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">The Classic 1920</h3>
+                <p class="card-price">$240.00</p>
+            </div>
+        </div>
+
+        <!-- 4. Y2K Chrome Pastel -->
+        <div class="card card-y2k">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-solid fa-star"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Retro Hyper Walk</h3>
+                <p class="card-price">$95.00</p>
+            </div>
+        </div>
+
+        <!-- 5. Animated Border-Draw -->
+        <div class="card card-border-draw">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Tracer Edition</h3>
+                <p class="card-price" style="color: #ff9f43;">$135.00</p>
+            </div>
+        </div>
+
+        <!-- 6. Split-Screen Reveal -->
+        <div class="card card-split">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-solid fa-expand"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <div>
+                    <h3 class="card-title">Curtain Reveal Runner</h3>
+                    <p style="color:#aaa; font-size:0.85rem;">Hover to reveal detailed checkout.</p>
+                </div>
+                <p class="card-price" style="color:#74b9ff;">$110.00</p>
+            </div>
+        </div>
+
+        <!-- 7. Liquid Blob Morph -->
+        <div class="card card-blob">
+            <div class="img-box">
+                <div class="blob-bg"></div>
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Organic Fluid Shape</h3>
+                <p class="card-price" style="color:#ff4757;">$85.00</p>
+            </div>
+        </div>
+
+        <!-- 8. Windows 95 Retro -->
+        <div class="card card-win95">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn" title="OK">?</button>
+                    <button class="action-btn" title="Save"><i class="fa-solid fa-floppy-disk"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Kicks_v1.0.exe</h3>
+                <p class="card-price">$45.00</p>
+            </div>
+        </div>
+
+        <!-- 9. Frosted Ice Glass -->
+        <div class="card-ice-wrap">
+            <div class="card card-ice">
+                <div class="img-box">
+                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+                    <div class="card-actions">
+                        <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                        <button class="action-btn"><i class="fa-solid fa-cart-plus"></i></button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Glacier Frosted</h3>
+                    <p class="card-price" style="color:#74b9ff;">$160.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. Comic Book Cell Shading -->
+        <div class="card card-comic">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-bolt"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">POW! Retro Comic</h3>
+                <p class="card-price">$55.00</p>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

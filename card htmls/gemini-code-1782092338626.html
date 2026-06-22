@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Product Cards with Reviews & Colors</title>
+    <!-- FontAwesome for Icons (Stars) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & GRID STYLES
+           ========================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 4rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Properties */
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            height: 440px;
+            transition: all 0.3s ease;
+        }
+
+        .img-box {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f9f9f9;
+            overflow: hidden;
+        }
+
+        .img-box img {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* Review Stars Base */
+        .reviews {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .reviews .count {
+            color: #888;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+
+        /* Color Swatches Base */
+        .colors {
+            display: flex;
+            gap: 8px;
+            margin-top: auto; /* Pushes to bottom */
+            align-items: center;
+        }
+
+        .swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        /* =========================================
+           1. MODERN STANDARD (Amazon/Shopify Style)
+           ========================================= */
+        .card-modern { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card-modern:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(-5px); }
+        .card-modern .reviews { color: #f39c12; } /* Yellow stars */
+        .card-modern .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px;}
+        .card-modern .card-price { font-size: 1.2rem; font-weight: 700; color: #e74c3c; margin-bottom: 15px;}
+        .card-modern .swatch { border: 2px solid transparent; box-shadow: 0 0 0 1px #ddd; }
+        .card-modern .swatch.active, .card-modern .swatch:hover { box-shadow: 0 0 0 2px #333; }
+
+        /* =========================================
+           2. DARK TECH / CYBER
+           ========================================= */
+        .card-tech { background: #121212; color: #fff; border: 1px solid #333; }
+        .card-tech .img-box { background: #1a1a1a; }
+        .card-tech .reviews { color: #00f2fe; text-shadow: 0 0 5px rgba(0,242,254,0.5); }
+        .card-tech .card-price { color: #00f2fe; }
+        .card-tech .swatch { border-radius: 4px; width: 25px; height: 8px; } /* Dash swatches */
+        .card-tech .swatch.active { box-shadow: 0 0 8px currentColor; transform: scaleY(1.5); }
+
+        /* =========================================
+           3. SOFT PASTEL / FEMININE
+           ========================================= */
+        .card-pastel { background: #fffcfdfa; border-radius: 24px; box-shadow: 0 10px 30px rgba(255, 182, 193, 0.15);}
+        .card-pastel .img-box { background: #ffeef2; border-radius: 24px 24px 0 0;}
+        .card-pastel .reviews { color: #ff9fb2; }
+        .card-pastel .card-title { color: #555; }
+        .card-pastel .swatch { width: 24px; height: 24px; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-left: -10px; } /* Overlapping swatches */
+        .card-pastel .swatch:first-child { margin-left: 0; }
+        .card-pastel .swatch:hover { transform: translateY(-3px); z-index: 2; position: relative;}
+
+        /* =========================================
+           4. NEUMORPHIC E-COM
+           ========================================= */
+        .card-neu { background: #e0e5ec; border-radius: 20px; box-shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5); }
+        .card-neu .img-box { background: transparent; }
+        .card-neu .reviews { color: #f1c40f; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .card-neu .colors { background: #d1d9e6; padding: 8px; border-radius: 30px; width: fit-content; box-shadow: inset 3px 3px 6px #b8c5d6, inset -3px -3px 6px #fff; }
+        .card-neu .swatch { border: 2px solid #e0e5ec; box-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+
+        /* =========================================
+           5. BRUTALIST / BLOCKY
+           ========================================= */
+        .card-brutal { border: 3px solid #000; border-radius: 0; box-shadow: 6px 6px 0px #000; transition: 0.2s;}
+        .card-brutal:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0px #000; }
+        .card-brutal .img-box { background: #fff; border-bottom: 3px solid #000; }
+        .card-brutal .reviews { color: #000; }
+        .card-brutal .card-title { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.3rem;}
+        .card-brutal .swatch { border-radius: 0; border: 2px solid #000; width: 25px; height: 25px; }
+        .card-brutal .swatch.active { transform: rotate(15deg); box-shadow: 2px 2px 0 #000; }
+
+        /* =========================================
+           6. GLASSMORPHIC FLOATING
+           ========================================= */
+        .card-glass-wrap { background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%); padding: 15px; border-radius: 20px;}
+        .card-glass { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); height: 100%;}
+        .card-glass .img-box { background: transparent; }
+        .card-glass .reviews { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .card-glass .card-title, .card-glass .card-price, .card-glass .count { color: #222; }
+        .card-glass .swatch { border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+        /* =========================================
+           7. MINIMAL WIREFRAME
+           ========================================= */
+        .card-wire { border: 1px solid #ddd; border-radius: 0; box-shadow: none; }
+        .card-wire .img-box { background: #fff; }
+        .card-wire .reviews { color: #333; }
+        .card-wire .reviews i { font-size: 0.75rem; }
+        .card-wire .card-title { font-weight: 400; font-size: 1rem; }
+        .card-wire .swatch { border: 1px solid #999; background: transparent !important; position: relative;}
+        .card-wire .swatch::after { content: ''; position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px; border-radius: 50%; background: var(--swatch-color); opacity: 0.2; transition: 0.3s;}
+        .card-wire .swatch.active::after, .card-wire .swatch:hover::after { opacity: 1; }
+
+        /* =========================================
+           8. SPORTY / DYNAMIC
+           ========================================= */
+        .card-sporty { border-radius: 0 30px 0 30px; background: #fff; border-left: 4px solid #ff4757; }
+        .card-sporty .img-box { background: #f1f2f6; border-radius: 0 30px 0 0; clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%); padding-bottom: 40px;}
+        .card-sporty .reviews { color: #ff4757; }
+        .card-sporty .card-title { font-family: 'Oswald', sans-serif; font-style: italic; font-size: 1.4rem; line-height: 1.2;}
+        .card-sporty .colors { transform: skewX(-15deg); }
+        .card-sporty .swatch { border-radius: 0; width: 30px; height: 15px; border: 1px solid #ddd;}
+        .card-sporty .swatch.active { border-color: #000; }
+
+        /* =========================================
+           9. VINTAGE / RETRO SEPIA
+           ========================================= */
+        .card-retro { background: #fdfaf3; border: 1px dashed #c8bba6; border-radius: 8px;}
+        .card-retro .img-box { background: #f4eade; }
+        .card-retro .img-box img { filter: sepia(0.3); }
+        .card-retro .reviews { color: #d35400; } /* Burnt orange stars */
+        .card-retro .card-title { font-family: 'Playfair Display', serif; color: #4a3c31; }
+        .card-retro .colors { background: #eee5d8; padding: 5px 10px; border-radius: 20px; border: 1px solid #dcd1c4;}
+        .card-retro .swatch { width: 16px; height: 16px; border: 1px solid #4a3c31; }
+
+        /* =========================================
+           10. PREMIUM LUXURY (Gold & Charcoal)
+           ========================================= */
+        .card-luxury { background: #1c1c1c; color: #fff; border-radius: 0; position: relative;}
+        .card-luxury::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px solid #d4af37; pointer-events: none;}
+        .card-luxury .img-box { background: #111; }
+        .card-luxury .reviews { color: #d4af37; } /* Gold stars */
+        .card-luxury .card-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #f1f1f1;}
+        .card-luxury .card-price { color: #d4af37; font-weight: 300;}
+        .card-luxury .colors { justify-content: flex-end; }
+        .card-luxury .swatch { width: 12px; height: 12px; border: 1px solid #555; }
+        .card-luxury .swatch.active { border-color: #d4af37; outline: 1px solid #d4af37; outline-offset: 2px;}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Detailed Product Cards</h1>
+        <p>10 Unique Styles with Reviews (Stars) & Color Swatches</p>
+    </div>
+
+    <div class="card-grid">
+
+        <!-- 1. Modern Standard -->
+        <div class="card card-modern">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                    <span class="count">(1,245)</span>
+                </div>
+                <h3 class="card-title">Nike Air Max Pro</h3>
+                <p class="card-price">$120.00</p>
+                <div class="colors">
+                    <span style="font-size: 0.85rem; color: #777; margin-right: 5px;">Colors:</span>
+                    <div class="swatch active" style="background: #e74c3c;"></div>
+                    <div class="swatch" style="background: #2c3e50;"></div>
+                    <div class="swatch" style="background: #ecf0f1;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Dark Tech / Cyber -->
+        <div class="card card-tech">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                    <span class="count" style="color: #666;">(89)</span>
+                </div>
+                <h3 class="card-title">Cyber Kicks V.2</h3>
+                <p class="card-price">$189.99</p>
+                <div class="colors">
+                    <div class="swatch active" style="background: #00f2fe; color: #00f2fe;"></div>
+                    <div class="swatch" style="background: #ff007f; color: #ff007f;"></div>
+                    <div class="swatch" style="background: #39ff14; color: #39ff14;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Soft Pastel -->
+        <div class="card card-pastel">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    <span class="count">(430)</span>
+                </div>
+                <h3 class="card-title">Blush Comfort Walk</h3>
+                <p class="card-price" style="color: #ff7675; font-weight: 600;">$75.00</p>
+                <div class="colors">
+                    <div class="swatch" style="background: #ffb8b8;"></div>
+                    <div class="swatch" style="background: #c7ecee;"></div>
+                    <div class="swatch" style="background: #f8efba;"></div>
+                    <div class="swatch" style="background: #dff9fb;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Neumorphic E-com -->
+        <div class="card card-neu">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                    <span class="count">(12)</span>
+                </div>
+                <h3 class="card-title">Neo Glide Runners</h3>
+                <p class="card-price" style="color: #555;">$99.00</p>
+                <div class="colors">
+                    <div class="swatch" style="background: #a4b0be;"></div>
+                    <div class="swatch" style="background: #ff6b81;"></div>
+                    <div class="swatch" style="background: #1e90ff;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Brutalist / Blocky -->
+        <div class="card card-brutal">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <h3 class="card-title">Block Sneaker</h3>
+                <p class="card-price" style="font-weight: 800; font-size: 1.2rem;">$65.00</p>
+                <div class="colors">
+                    <div class="swatch active" style="background: #ff4757;"></div>
+                    <div class="swatch" style="background: #2ed573;"></div>
+                    <div class="swatch" style="background: #1e90ff;"></div>
+                    <div class="swatch" style="background: #ffa502;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Glassmorphic -->
+        <div class="card-glass-wrap">
+            <div class="card card-glass">
+                <div class="img-box">
+                    <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+                </div>
+                <div class="card-content">
+                    <div class="reviews">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                        <span class="count">(2k+)</span>
+                    </div>
+                    <h3 class="card-title">Crystal Clear Series</h3>
+                    <p class="card-price" style="font-weight: 600;">$140.00</p>
+                    <div class="colors">
+                        <div class="swatch" style="background: rgba(255,255,255,0.8);"></div>
+                        <div class="swatch" style="background: rgba(0,0,0,0.6);"></div>
+                        <div class="swatch" style="background: rgba(255, 107, 129, 0.8);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Minimal Wireframe -->
+        <div class="card card-wire">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                    <span class="count">No reviews yet</span>
+                </div>
+                <h3 class="card-title">Essential Form</h3>
+                <p class="card-price" style="color: #666;">$55.00</p>
+                <div class="colors">
+                    <div class="swatch active" style="--swatch-color: #000;"></div>
+                    <div class="swatch" style="--swatch-color: #74b9ff;"></div>
+                    <div class="swatch" style="--swatch-color: #a29bfe;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Sporty / Dynamic -->
+        <div class="card card-sporty">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                    <span class="count">(88)</span>
+                </div>
+                <h3 class="card-title">SPEED TRAINER X</h3>
+                <p class="card-price" style="font-weight: 800;">$110.00</p>
+                <div class="colors">
+                    <div class="swatch active" style="background: #ff4757;"></div>
+                    <div class="swatch" style="background: #2f3542;"></div>
+                    <div class="swatch" style="background: #f1f2f6;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. Vintage / Retro Sepia -->
+        <div class="card card-retro">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                </div>
+                <h3 class="card-title">Heritage Edition '84</h3>
+                <p class="card-price" style="color: #7a6b5d;">$85.00</p>
+                <div class="colors">
+                    <div class="swatch" style="background: #8b4513;"></div>
+                    <div class="swatch" style="background: #556b2f;"></div>
+                    <div class="swatch" style="background: #a0522d;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. Premium Luxury -->
+        <div class="card card-luxury">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div class="reviews">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    <span class="count" style="color:#d4af37;">(15)</span>
+                </div>
+                <h3 class="card-title">Luxe Signature</h3>
+                <p class="card-price">$299.00</p>
+                <div class="colors">
+                    <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color:#aaa; margin-right: 5px;">Select:</span>
+                    <div class="swatch active" style="background: #000;"></div>
+                    <div class="swatch" style="background: #d4af37;"></div>
+                    <div class="swatch" style="background: #fff;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

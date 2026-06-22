@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 More Unique Product Cards</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Quicksand:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & GRID STYLES
+           ========================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #2d3436;
+            padding: 3rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: #111;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #636e72;
+            font-size: 1.1rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Properties */
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            height: 420px;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .img-box {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .img-box img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            transition: all 0.5s ease;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        /* =========================================
+           1. HIGH-END EDITORIAL (Zara/H&M Style)
+           ========================================= */
+        .card-editorial {
+            border-radius: 0;
+            background: #fff;
+            box-shadow: none;
+            border: 1px solid transparent;
+        }
+        .card-editorial:hover { border-color: #e0e0e0; }
+        .card-editorial .img-box { background: #f4f4f4; }
+        .card-editorial .card-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px;}
+        .card-editorial .card-price { font-weight: 300; font-size: 1rem; color: #555; }
+        .card-editorial .card-actions { 
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            background: rgba(255,255,255,0.95); padding: 15px; 
+            display: flex; justify-content: center; gap: 15px;
+            transform: translateY(100%); transition: 0.3s;
+        }
+        .card-editorial:hover .card-actions { transform: translateY(0); }
+        .card-editorial .action-btn { background: #000; color: #fff; border: none; padding: 10px 20px; text-transform: uppercase; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px;}
+        .card-editorial .action-btn:hover { background: #333; }
+
+        /* =========================================
+           2. PLAYFUL KIDS BOUTIQUE 
+           ========================================= */
+        .card-kids {
+            border-radius: 30px;
+            background: #fff0f5;
+            box-shadow: 0 10px 20px rgba(255, 182, 193, 0.2);
+            font-family: 'Quicksand', sans-serif;
+        }
+        .card-kids .img-box { background: radial-gradient(circle, #fff, #ffe4e1); border-radius: 30px 30px 0 0;}
+        .card-kids .card-title { color: #ff69b4; font-weight: 700; font-size: 1.4rem;}
+        .card-kids .card-price { color: #8a2be2; font-weight: 700; font-size: 1.2rem;}
+        .card-kids:hover { transform: translateY(-10px); box-shadow: 0 15px 25px rgba(255, 182, 193, 0.4); }
+        .card-kids:hover .img-box img { transform: scale(1.1) rotate(5deg); }
+        .card-kids .card-actions { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 8px;}
+        .card-kids .action-btn { width: 45px; height: 45px; border-radius: 50%; background: #fff; color: #ff69b4; border: 2px solid #ffb6c1; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        .card-kids .action-btn:hover { background: #ff69b4; color: #fff; transform: scale(1.2); }
+
+        /* =========================================
+           3. POS SYSTEM TERMINAL
+           ========================================= */
+        .card-pos {
+            background: #1e1e24; color: #f5f6fa; border-radius: 12px;
+            box-shadow: inset 0 0 0 1px #2f3640;
+        }
+        .card-pos .img-box { height: 180px; background: #2f3640; padding: 10px;}
+        .card-pos .card-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .card-pos .stock-badge { font-size: 0.75rem; background: #44bd32; color: #fff; padding: 2px 6px; border-radius: 4px; position: absolute; top: 10px; left: 10px;}
+        .card-pos .card-price { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: #00a8ff; }
+        .card-pos .pos-add-btn { width: 100%; background: #00a8ff; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: auto;}
+        .card-pos .pos-add-btn:active { transform: scale(0.97); background: #0097e6; }
+        .card-pos:hover { border-color: #00a8ff; box-shadow: inset 0 0 0 2px #00a8ff; }
+
+        /* =========================================
+           4. FESTIVE / PATRIOTIC (Green & Gold)
+           ========================================= */
+        .card-festive {
+            background: linear-gradient(145deg, #004d00, #006600);
+            color: #fff; border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 102, 0, 0.3);
+        }
+        .card-festive .img-box { background: url('https://www.transparenttextures.com/patterns/stardust.png'); }
+        .card-festive .card-title { color: #f1c40f; font-family: 'Playfair Display', serif; }
+        .card-festive .card-price { color: #fff; font-size: 1.4rem; }
+        .card-festive .card-actions { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px;}
+        .card-festive .action-btn { border-radius: 50%; width: 40px; height: 40px; border: 1px solid #f1c40f; background: rgba(241, 196, 15, 0.1); color: #f1c40f; backdrop-filter: blur(4px); cursor: pointer; transition: 0.3s;}
+        .card-festive .action-btn:hover { background: #f1c40f; color: #004d00; transform: translateY(-5px); }
+
+        /* =========================================
+           5. DENIM / FABRIC TEXTURE
+           ========================================= */
+        .card-denim {
+            background: #192a56;
+            color: #f5f6fa;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        /* Stitching effect */
+        .card-denim::before {
+            content: ''; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 4px; pointer-events: none; z-index: 2;
+        }
+        .card-denim .img-box { background: rgba(0,0,0,0.2); }
+        .card-denim .card-title { text-transform: uppercase; font-weight: 800; letter-spacing: 1px; color: #e1b12c;}
+        .card-denim .card-price { font-weight: 700; }
+        .card-denim .action-btn { position: absolute; bottom: 15px; right: 15px; background: #e1b12c; color: #192a56; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700;}
+        .card-denim:hover .action-btn { background: #fff; }
+
+        /* =========================================
+           6. HOLOGRAPHIC FOIL
+           ========================================= */
+        .card-holo {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-holo::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg); transition: 0.7s; z-index: 1; pointer-events: none;
+        }
+        .card-holo:hover::after { left: 150%; }
+        .card-holo .img-box img { filter: drop-shadow(0 20px 20px rgba(0,0,0,0.15)); z-index: 2; position: relative;}
+        .card-holo .card-content { background: rgba(255,255,255,0.4); backdrop-filter: blur(10px); z-index: 2; position: relative;}
+        .card-holo .card-title { color: #2d3436; font-weight: 800; }
+        .card-holo .action-btn { position: absolute; top: 15px; right: 15px; z-index: 3; border: none; background: #fff; color: #000; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;}
+
+        /* =========================================
+           7. MINIMALIST DASHBOARD / ADMIN
+           ========================================= */
+        .card-admin {
+            background: #fff; border-radius: 8px;
+            border: 1px solid #e0e6ed; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .card-admin .img-box { height: 150px; border-bottom: 1px solid #e0e6ed; background: #f8fafd; padding: 10px;}
+        .card-admin .img-box img { max-height: 100%; object-fit: contain; }
+        .card-admin .status { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #64748b; margin-bottom: 10px;}
+        .card-admin .status::before { content: ''; display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;}
+        .card-admin .card-title { font-size: 1rem; color: #1e293b; margin-bottom: 15px;}
+        .card-admin .dash-actions { display: flex; gap: 10px; border-top: 1px solid #e0e6ed; padding-top: 15px;}
+        .card-admin .btn-outline { flex: 1; padding: 8px; border: 1px solid #cbd5e1; background: transparent; color: #475569; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 0.85rem;}
+        .card-admin .btn-outline:hover { background: #f1f5f9; color: #0f172a; border-color: #94a3b8;}
+
+        /* =========================================
+           8. ISOMETRIC 3D POP
+           ========================================= */
+        .card-iso-wrap { perspective: 1000px; }
+        .card-iso {
+            background: #fff; border-radius: 20px;
+            box-shadow: -15px 15px 30px rgba(0,0,0,0.1);
+            transform: rotateX(15deg) rotateY(-15deg);
+            transform-style: preserve-3d;
+            transition: 0.5s ease;
+        }
+        .card-iso .img-box img { transform: translateZ(50px); transition: 0.5s; }
+        .card-iso .card-content { transform: translateZ(30px); }
+        .card-iso:hover { transform: rotateX(0) rotateY(0); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .card-iso:hover .img-box img { transform: translateZ(0) scale(1.1); }
+        .card-iso .card-actions { position: absolute; bottom: 20px; right: 20px; transform: translateZ(40px); display: flex; gap: 8px;}
+        .card-iso .action-btn { border: none; background: #6c5ce7; color: #fff; width: 35px; height: 35px; border-radius: 8px; cursor: pointer;}
+
+        /* =========================================
+           9. MONOCHROME BRUTALISM
+           ========================================= */
+        .card-brutal {
+            background: #fff; color: #000; border: 4px solid #000;
+            border-radius: 0; position: relative;
+        }
+        .card-brutal .img-box { background: #e0e0e0; border-bottom: 4px solid #000; filter: grayscale(100%); transition: 0.4s;}
+        .card-brutal:hover .img-box { filter: grayscale(0%); }
+        .card-brutal .card-title { font-size: 1.8rem; font-weight: 900; line-height: 1; text-transform: uppercase; margin-bottom: 10px;}
+        .card-brutal .card-price { font-size: 1.5rem; font-weight: 900; background: #000; color: #fff; display: inline-block; padding: 5px 10px;}
+        .card-brutal .brutal-add { position: absolute; top: -4px; right: -4px; background: #fff; border: 4px solid #000; padding: 10px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s;}
+        .card-brutal .brutal-add:hover { background: #000; color: #fff; }
+
+        /* =========================================
+           10. DARK LUXURY GOLD
+           ========================================= */
+        .card-luxury {
+            background: #0a0a0a; color: #fff; border-radius: 0;
+            border: 1px solid #333; position: relative; overflow: hidden;
+        }
+        .card-luxury .img-box { background: radial-gradient(circle, #222, #000); }
+        .card-luxury .card-title { font-family: 'Playfair Display', serif; color: #d4af37; font-size: 1.4rem; font-weight: 400;}
+        .card-luxury .card-price { color: #fff; font-weight: 300; letter-spacing: 1px;}
+        .card-luxury::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid #d4af37; transform: scale(0.9); opacity: 0; transition: 0.5s; pointer-events: none; z-index: 2;
+        }
+        .card-luxury:hover::before { transform: scale(0.95); opacity: 1; }
+        .card-luxury .card-actions { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; opacity: 0; transition: 0.4s;}
+        .card-luxury:hover .card-actions { opacity: 1; }
+        .card-luxury .action-btn { background: transparent; border: none; color: #d4af37; font-size: 1.2rem; cursor: pointer;}
+        .card-luxury .action-btn:hover { color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Curated UI Vibes</h1>
+        <p>10 More Practical & Thematic Styles for E-commerce & Dashboards</p>
+    </div>
+
+    <div class="card-grid">
+
+        <!-- 1. Editorial Minimalist -->
+        <div class="card card-editorial">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div>
+                    <h3 class="card-title">Zara Editorial Style</h3>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Ghost Mannequin Concept</p>
+                </div>
+                <p class="card-price">$129.00</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn">Quick View</button>
+                <button class="action-btn">Add to Bag</button>
+            </div>
+        </div>
+
+        <!-- 2. Playful Kids Boutique -->
+        <div class="card card-kids">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Little Outfits Playful</h3>
+                <p class="card-price">Rs. 2,499</p>
+            </div>
+        </div>
+
+        <!-- 3. POS System Terminal -->
+        <div class="card card-pos">
+            <div class="img-box">
+                <span class="stock-badge">12 in stock</span>
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content" style="padding: 1rem;">
+                <h3 class="card-title">ZaynahsPOS Terminal Item</h3>
+                <p class="card-price">$45.00</p>
+                <button class="pos-add-btn"><i class="fa-solid fa-cart-plus"></i> Add Item</button>
+            </div>
+        </div>
+
+        <!-- 4. Festive / Patriotic -->
+        <div class="card card-festive">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <div class="card-actions">
+                    <button class="action-btn"><i class="fa-solid fa-star"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-bag-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">TotVogue Festive Edition</h3>
+                <p style="font-size: 0.85rem; opacity: 0.8;">14th August Collection</p>
+                <p class="card-price" style="margin-top: 10px;">Rs. 3,200</p>
+            </div>
+        </div>
+
+        <!-- 5. Denim / Fabric Texture -->
+        <div class="card card-denim">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Cargo Denim Jeans</h3>
+                <p class="card-price">Rs. 1,850</p>
+                <button class="action-btn">Add</button>
+            </div>
+        </div>
+
+        <!-- 6. Holographic Foil -->
+        <div class="card card-holo">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+                <button class="action-btn"><i class="fa-solid fa-heart"></i></button>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Hologram Hype</h3>
+                <p class="card-price">$89.99</p>
+            </div>
+        </div>
+
+        <!-- 7. Minimalist Dashboard / Admin -->
+        <div class="card card-admin">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <div>
+                    <div class="status">Active Inventory</div>
+                    <h3 class="card-title">Sweatshirt Tracksuit Set</h3>
+                </div>
+                <div class="dash-actions">
+                    <button class="btn-outline"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn-outline"><i class="fa-solid fa-chart-line"></i> Stats</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Isometric 3D -->
+        <div class="card-iso-wrap">
+            <div class="card card-iso">
+                <div class="img-box">
+                    <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Product">
+                    <div class="card-actions">
+                        <button class="action-btn"><i class="fa-solid fa-expand"></i></button>
+                        <button class="action-btn"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">3D Floating Grid</h3>
+                    <p class="card-price">$115.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. Monochrome Brutalism -->
+        <div class="card card-brutal">
+            <button class="brutal-add">Buy</button>
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Urban Block</h3>
+                <p class="card-price">$75</p>
+            </div>
+        </div>
+
+        <!-- 10. Dark Luxury Gold -->
+        <div class="card card-luxury">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Product">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Royal Elegance</h3>
+                <p class="card-price">$350.00</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                <button class="action-btn"><i class="fa-solid fa-shopping-bag"></i></button>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

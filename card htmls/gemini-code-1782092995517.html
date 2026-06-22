@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Different Creative Vibes - Product Cards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Caveat:wght@700&family=Teko:wght@500;700&family=Space+Mono:wght@400;700&family=Cinzel:wght@600&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & BASE STYLES
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #1a1a24; /* Darker bg to make diverse cards pop */
+            color: #fff;
+            padding: 4rem 1rem;
+        }
+        
+        .header { text-align: center; margin-bottom: 5rem; }
+        .header h1 { font-size: 3rem; margin-bottom: 0.5rem; background: linear-gradient(90deg, #ff7eb3, #ff758c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: #a0a0b0; font-size: 1.1rem; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Structure */
+        .card {
+            position: relative; display: flex; flex-direction: column;
+            height: 460px; transition: all 0.4s ease;
+        }
+
+        .img-box {
+            position: relative; width: 100%; height: 240px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; overflow: hidden;
+        }
+        .img-box img {
+            max-width: 85%; max-height: 85%; object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+        .card-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+
+        /* Actions Base */
+        .action-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px; border: none; cursor: pointer; transition: 0.3s;
+        }
+        .colors { display: flex; gap: 6px; margin-top: auto; align-items: center; }
+        .swatch { width: 18px; height: 18px; cursor: pointer; transition: 0.2s; }
+
+        /* =========================================
+           1. 80s SYNTHWAVE / RETRO NEON
+           ========================================= */
+        .card-synth {
+            background: linear-gradient(180deg, #12002b 0%, #2a005e 100%);
+            border: 2px solid #ff007f; border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(0, 242, 254, 0.3);
+        }
+        .card-synth .img-box { background: repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 242, 254, 0.1) 20px, rgba(0, 242, 254, 0.1) 21px); border-bottom: 2px solid #00f2fe;}
+        .card-synth .card-title { font-family: 'Righteous', cursive; color: #00f2fe; font-size: 1.4rem; text-shadow: 2px 2px #ff007f;}
+        .card-synth .card-price { color: #ff007f; font-weight: bold; font-size: 1.2rem;}
+        .card-synth .action-bar { display: flex; gap: 10px; margin-top: 15px;}
+        .card-synth .action-btn { background: transparent; border: 1px solid #00f2fe; color: #00f2fe; border-radius: 5px; text-shadow: 0 0 5px #00f2fe;}
+        .card-synth .action-btn:hover { background: #ff007f; border-color: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f;}
+        .card-synth .swatch { border-radius: 0; transform: skew(-15deg); border: 1px solid #fff;}
+
+        /* =========================================
+           2. ECO / ORGANIC NATURE
+           ========================================= */
+        .card-eco {
+            background: #f4f1ea; color: #3e4e38;
+            border-radius: 50% 0 50% 0; /* Leaf shape */
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+        }
+        .card-eco .img-box { background: #e8e3d5; border-radius: 50% 0 0 0; }
+        .card-eco .card-title { font-family: 'Outfit', sans-serif; font-weight: 700; color: #2c3a27;}
+        .card-eco .reviews { color: #8e9e7e; }
+        .card-eco .action-bar { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 8px;}
+        .card-eco .action-btn { border-radius: 50%; background: #fff; color: #3e4e38; box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+        .card-eco .action-btn:hover { background: #3e4e38; color: #fff; transform: translateY(-3px);}
+        .card-eco .swatch { border-radius: 50% 0 50% 0; } /* Mini leaf swatches */
+
+        /* =========================================
+           3. GAMING / ESPORTS (Glitch & Angular)
+           ========================================= */
+        .card-game {
+            background: #0f0f0f; color: #fff;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%);
+            border: 2px solid #ff003c; /* Cyberpunk Red */
+        }
+        .card-game .img-box { background: #1a1a1a; }
+        .card-game:hover .img-box img { transform: scale(1.1); filter: contrast(1.2) drop-shadow(0 0 10px #ff003c); }
+        .card-game .card-title { font-family: 'Teko', sans-serif; font-size: 1.8rem; line-height: 1; letter-spacing: 1px; color: #ff003c;}
+        .card-game .action-bar { display: flex; margin-top: 15px; border-top: 1px solid #333;}
+        .card-game .action-btn { flex: 1; background: transparent; color: #fff; border-radius: 0; border-right: 1px solid #333;}
+        .card-game .action-btn:last-child { background: #ff003c; border-right: none;}
+        .card-game .action-btn:hover { background: #fff; color: #000; }
+        .card-game .swatch { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); border-radius: 0;}
+
+        /* =========================================
+           4. HAND-DRAWN / DOODLE SKETCH
+           ========================================= */
+        .card-sketch {
+            background: #fff; color: #111;
+            /* Fancy border radius to look hand drawn */
+            border: 3px solid #111;
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: 4px 4px 0 #111;
+        }
+        .card-sketch .img-box { background: transparent; }
+        .card-sketch .card-title { font-family: 'Caveat', cursive; font-size: 2rem; line-height: 1;}
+        .card-sketch .card-price { font-family: 'Caveat', cursive; font-size: 1.5rem; font-weight: bold;}
+        .card-sketch .reviews { color: #000; font-family: 'Caveat', cursive; font-size: 1.2rem;}
+        .card-sketch .action-bar { display: flex; gap: 10px; margin-top: 10px;}
+        .card-sketch .action-btn { 
+            background: #fff; color: #111; border: 2px solid #111; 
+            border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+        }
+        .card-sketch .action-btn:hover { background: #111; color: #fff; transform: rotate(-5deg);}
+        .card-sketch .swatch { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; border: 2px solid #111;}
+
+        /* =========================================
+           5. MEMPHIS POP ART (90s Style)
+           ========================================= */
+        .card-memphis {
+            background: #ffcc00; color: #000;
+            border: 4px solid #000; border-radius: 0;
+            box-shadow: 10px 10px 0 #ff007a;
+        }
+        .card-memphis .img-box { background: #00f0ff; border-bottom: 4px solid #000; position: relative;}
+        .card-memphis .img-box::before { /* Pattern element */
+            content: ''; position: absolute; width: 40px; height: 40px; background: transparent;
+            border: 4px dotted #ff007a; border-radius: 50%; top: 10px; left: 10px;
+        }
+        .card-memphis .card-title { font-weight: 900; text-transform: uppercase; font-size: 1.3rem;}
+        .card-memphis .action-bar { display: flex; gap: 0; position: absolute; top: 10px; right: -20px; flex-direction: column;}
+        .card-memphis .action-btn { background: #fff; border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000; margin-bottom: 5px;}
+        .card-memphis .action-btn:hover { background: #ff007a; color: #fff; transform: translate(-2px, -2px);}
+        .card-memphis .swatch { border-radius: 0; border: 2px solid #000; width: 20px; height: 20px;}
+
+        /* =========================================
+           6. HOLOGRAPHIC / IRIDESCENT
+           ========================================= */
+        @keyframes holo { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+        .card-holo {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            background-size: 300% 300%; animation: holo 6s ease infinite;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(161, 196, 253, 0.4);
+            color: #333;
+        }
+        .card-holo .img-box { background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); border-radius: 20px 20px 0 0;}
+        .card-holo .card-content { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 0 0 20px 20px;}
+        .card-holo .action-bar { display: flex; gap: 10px; margin-top: 15px;}
+        .card-holo .action-btn { background: rgba(255,255,255,0.8); border-radius: 50%; color: #333;}
+        .card-holo .action-btn:hover { background: #fff; transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+        .card-holo .swatch { box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid #fff;}
+
+        /* =========================================
+           7. TICKET / COUPON STYLE
+           ========================================= */
+        .card-ticket {
+            background: #fff; color: #000; border-radius: 10px;
+            /* Perforated edge effect */
+            background-image: radial-gradient(circle at top left, transparent 15px, #fff 16px),
+                              radial-gradient(circle at top right, transparent 15px, #fff 16px),
+                              radial-gradient(circle at bottom left, transparent 15px, #fff 16px),
+                              radial-gradient(circle at bottom right, transparent 15px, #fff 16px);
+            background-size: 51% 51%; background-repeat: no-repeat;
+            background-position: top left, top right, bottom left, bottom right;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+        }
+        .card-ticket .img-box { background: #f0f0f0; border-bottom: 2px dashed #ccc; }
+        .card-ticket .card-title { font-family: 'Space Mono', monospace; font-size: 1.2rem; text-transform: uppercase;}
+        .card-ticket .card-price { font-family: 'Space Mono', monospace; font-size: 1.5rem; background: #000; color:#fff; display: inline-block; padding: 2px 10px;}
+        .card-ticket .action-bar { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 5px;}
+        .card-ticket .action-btn { font-family: 'Space Mono'; border-radius: 0; background: #eee; border: 1px solid #ccc; font-size: 0.9rem;}
+        .card-ticket .action-btn:hover { background: #000; color: #fff; }
+        .card-ticket .swatch { border-radius: 0; border: 1px dashed #000; }
+
+        /* =========================================
+           8. LUXURY / VELVET GOLD
+           ========================================= */
+        .card-luxury {
+            background: #0d1b2a; color: #fff; border: 1px solid #d4af37;
+            border-radius: 0; text-align: center;
+        }
+        .card-luxury .img-box { background: radial-gradient(circle, #1b263b, #0d1b2a); }
+        .card-luxury .card-title { font-family: 'Cinzel', serif; color: #d4af37; font-size: 1.3rem; margin-top: 10px;}
+        .card-luxury .reviews { justify-content: center; color: #d4af37;}
+        .card-luxury .action-bar { display: flex; justify-content: center; gap: 15px; margin-top: 15px; opacity: 0; transition: 0.5s;}
+        .card-luxury:hover .action-bar { opacity: 1; }
+        .card-luxury .action-btn { background: transparent; color: #d4af37; border: 1px solid #d4af37; border-radius: 50%;}
+        .card-luxury .action-btn:hover { background: #d4af37; color: #0d1b2a; }
+        .card-luxury .colors { justify-content: center; }
+        .card-luxury .swatch { width: 12px; height: 12px; border: 1px solid #d4af37;}
+
+        /* =========================================
+           9. ANALYTICS / DASHBOARD UI
+           ========================================= */
+        .card-dash {
+            background: #222736; color: #a6b0cf;
+            border-radius: 8px; border: 1px solid #32394e;
+        }
+        .card-dash .img-box { background: #2a3042; border-bottom: 1px solid #32394e; height: 180px; padding: 10px;}
+        .card-dash .card-title { color: #f1b44c; font-size: 1rem; font-family: 'Space Mono', monospace;}
+        .card-dash .stat-bar { width: 100%; height: 6px; background: #32394e; border-radius: 3px; margin: 8px 0; overflow: hidden;}
+        .card-dash .stat-fill { width: 75%; height: 100%; background: #34c38f; } /* Progress */
+        .card-dash .action-bar { display: flex; gap: 10px; margin-top: 15px;}
+        .card-dash .action-btn { border-radius: 4px; background: #32394e; color: #a6b0cf; flex: 1; height: 35px; font-size: 0.9rem;}
+        .card-dash .action-btn:hover { background: #556ee6; color: #fff;}
+        .card-dash .swatch { border-radius: 4px; }
+
+        /* =========================================
+           10. ORIGAMI / FOLDED PAPER
+           ========================================= */
+        .card-origami {
+            background: #fff; color: #333; border-radius: 0;
+            box-shadow: -10px 10px 20px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .card-origami::before { /* Folded corner effect */
+            content: ''; position: absolute; top: 0; right: 0;
+            border-width: 0 40px 40px 0; border-style: solid;
+            border-color: #ddd #1a1a24 #fff #ddd; z-index: 10;
+            box-shadow: -5px 5px 10px rgba(0,0,0,0.1); transition: 0.3s;
+        }
+        .card-origami:hover::before { border-width: 0 60px 60px 0; }
+        .card-origami .img-box { background: #fdfdfd; border-bottom: 1px solid #eee;}
+        .card-origami .card-title { font-weight: 700; font-size: 1.2rem;}
+        .card-origami .action-bar { display: flex; gap: 10px; position: absolute; top: 50px; right: -20px; flex-direction: column; opacity: 0; transition: 0.4s;}
+        .card-origami:hover .action-bar { right: 10px; opacity: 1; }
+        .card-origami .action-btn { background: #e74c3c; color: #fff; border-radius: 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);}
+        .card-origami .swatch { border-radius: 0; transform: rotate(45deg); margin: 0 5px; width: 14px; height: 14px;}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Extreme Design Vibes</h1>
+        <p>10 Out-of-the-box Styles: Synthwave, Hand-drawn, Memphis, Gaming & more.</p>
+    </div>
+
+    <div class="card-grid">
+
+        <div class="card card-synth">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> <span style="color:#00f2fe; margin-left:5px;">(4.9)</span></div>
+                <h3 class="card-title">AERO-MAX 2084</h3>
+                <p class="card-price">$199.00</p>
+                <div class="colors">
+                    <div class="swatch" style="background: #00f2fe;"></div>
+                    <div class="swatch" style="background: #ff007f;"></div>
+                    <div class="swatch" style="background: #fff;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn" title="Add to Cart" style="flex: 1;"><i class="fa-solid fa-cart-shopping"></i></button>
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-eco">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews"><i class="fa-solid fa-leaf"></i> 4.8 Eco-Rating</div>
+                <h3 class="card-title">Bamboo Runner</h3>
+                <p class="card-price" style="font-weight: bold; margin-top:5px;">$85.00</p>
+                <div class="colors" style="margin-top: 15px;">
+                    <div class="swatch" style="background: #8e9e7e;"></div>
+                    <div class="swatch" style="background: #d4b595;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart" style="background: #8e9e7e; color:#fff;"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-game">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews" style="color: #ff003c; font-family:'Teko'; font-size:1.2rem;">LVL 99 RATING</div>
+                <h3 class="card-title">GLITCH KICKS V2</h3>
+                <p class="card-price" style="font-family:'Space Mono';">$145.00</p>
+                <div class="colors" style="margin-top: 10px;">
+                    <div class="swatch" style="background: #ff003c;"></div>
+                    <div class="swatch" style="background: #555;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-crosshairs"></i></button>
+                    <button class="action-btn">EQUIP ITEM</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-sketch">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews">★★★★☆ (112)</div>
+                <h3 class="card-title">Doodle Sneaker</h3>
+                <p class="card-price">$65.00</p>
+                <div class="colors" style="margin-top: 10px;">
+                    <div class="swatch" style="background: #ff6b81;"></div>
+                    <div class="swatch" style="background: #1e90ff;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn" style="flex:1;">Add to Cart!</button>
+                    <button class="action-btn">♥</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-memphis">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="action-bar">
+                    <button class="action-btn"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Radical 90s Walk</h3>
+                <p class="card-price" style="font-weight:bold; font-size:1.5rem; margin-top:5px;">$99.00</p>
+                <div class="colors" style="margin-top: auto;">
+                    <div class="swatch" style="background: #ff007a;"></div>
+                    <div class="swatch" style="background: #00f0ff;"></div>
+                    <div class="swatch" style="background: #ffcc00;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-holo">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews" style="color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.2);"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
+                <h3 class="card-title" style="font-weight:700;">Holo-Glass Runner</h3>
+                <p class="card-price" style="font-weight:700; font-size:1.2rem;">$150.00</p>
+                <div class="colors" style="margin-top: 10px;">
+                    <div class="swatch" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);"></div>
+                    <div class="swatch" style="background: linear-gradient(45deg, #a1c4fd, #c2e9fb);"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-cart-arrow-down"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-ticket">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="reviews" style="font-family:'Space Mono'; font-size:0.8rem;">[****-]</div>
+                    <span style="font-family:'Space Mono'; font-size:0.7rem; color:#888;">NO. 004829</span>
+                </div>
+                <h3 class="card-title" style="margin: 10px 0;">Vntg. Ticket Drop</h3>
+                <p class="card-price">$75.00</p>
+                <div class="colors" style="margin-top: 15px;">
+                    <div class="swatch" style="background: #222;"></div>
+                    <div class="swatch" style="background: #e74c3c;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn" title="View"><i class="fa-solid fa-barcode"></i></button>
+                    <button class="action-btn" title="Buy" style="width: 80px;">ADD</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-luxury">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <div class="reviews"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                <h3 class="card-title">Imperial Collection</h3>
+                <p class="card-price" style="font-family:'Cinzel'; margin-top:5px;">$450</p>
+                <div class="colors" style="margin-top: 15px;">
+                    <div class="swatch" style="background: #000;"></div>
+                    <div class="swatch" style="background: #1b263b;"></div>
+                    <div class="swatch" style="background: #d4af37;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn"><i class="fa-solid fa-shopping-bag"></i></button>
+                    <button class="action-btn"><i class="fa-regular fa-eye"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-dash">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="card-content">
+                <h3 class="card-title">PRD_SNEAKER_X1</h3>
+                <div style="font-size: 0.8rem; display: flex; justify-content: space-between; margin-top: 10px;">
+                    <span>Stock Level</span> <span style="color:#34c38f;">75%</span>
+                </div>
+                <div class="stat-bar"><div class="stat-fill"></div></div>
+                <p class="card-price" style="font-size:1.2rem; color:#fff; margin-top:10px;">$110.00</p>
+                <div class="colors" style="margin-top: 10px;">
+                    <div class="swatch" style="background: #556ee6;"></div>
+                    <div class="swatch" style="background: #f1b44c;"></div>
+                </div>
+                <div class="action-bar">
+                    <button class="action-btn"><i class="fa-solid fa-chart-line"></i> View</button>
+                    <button class="action-btn" style="background:#556ee6; color:#fff;"><i class="fa-solid fa-cart-plus"></i> Cart</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-origami">
+            <div class="img-box"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe"></div>
+            <div class="action-bar">
+                <button class="action-btn"><i class="fa-regular fa-heart"></i></button>
+                <button class="action-btn"><i class="fa-solid fa-eye"></i></button>
+                <button class="action-btn"><i class="fa-solid fa-cart-shopping"></i></button>
+            </div>
+            <div class="card-content">
+                <div class="reviews" style="color:#e74c3c;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
+                <h3 class="card-title">Origami Fold Runner</h3>
+                <p class="card-price" style="font-weight: 800; font-size:1.3rem;">$95.00</p>
+                <div class="colors" style="margin-top: 15px;">
+                    <div class="swatch" style="background: #e74c3c;"></div>
+                    <div class="swatch" style="background: #3498db;"></div>
+                    <div class="swatch" style="background: #2ecc71;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

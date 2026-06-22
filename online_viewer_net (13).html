@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Amazing Product Cards with Hover Effects</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           GLOBAL & GRID STYLES
+           ========================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 3rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Base Card Properties */
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #fff;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .img-box {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .img-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.2));
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-price {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #ff4757;
+        }
+
+        /* Base Action Icons */
+        .card-actions {
+            position: absolute;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            color: #333;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #ff4757;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* =========================================
+           1. NEUMORPHIC (Soft UI)
+           ========================================= */
+        .card-neumorphic {
+            background: #e0e5ec;
+            box-shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .card-neumorphic:hover {
+            box-shadow: 12px 12px 20px rgb(163,177,198,0.7), -12px -12px 20px rgba(255,255,255, 0.6);
+            transform: translateY(-10px);
+        }
+        .card-neumorphic .card-actions {
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: 0.4s ease;
+        }
+        .card-neumorphic:hover .card-actions {
+            bottom: 20px;
+        }
+        .card-neumorphic .action-btn {
+            background: #e0e5ec;
+            box-shadow: 4px 4px 8px rgb(163,177,198,0.6), -4px -4px 8px rgba(255,255,255, 0.5);
+            color: #555;
+        }
+        .card-neumorphic .action-btn:hover {
+            box-shadow: inset 4px 4px 8px rgb(163,177,198,0.6), inset -4px -4px 8px rgba(255,255,255, 0.5);
+            color: #3498db;
+        }
+
+        /* =========================================
+           2. COLOR BLOCK
+           ========================================= */
+        .card-color-block {
+            background: #2ed573;
+            color: #fff;
+            border-radius: 0;
+            border: 5px solid #1e90ff;
+        }
+        .card-color-block .card-price { color: #111; }
+        .card-color-block .img-box {
+            background: #1e90ff;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        .card-color-block:hover .img-box img {
+            transform: scale(1.2) rotate(15deg);
+        }
+        .card-color-block .card-actions {
+            top: 20px;
+            right: -60px;
+            flex-direction: column;
+            transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .card-color-block:hover .card-actions {
+            right: 15px;
+        }
+        .card-color-block .action-btn {
+            background: #ffa502;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        /* =========================================
+           3. GLASSMORPHISM
+           ========================================= */
+        .card-glass-wrap {
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
+            border-radius: 20px;
+            padding: 15px;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+        .card-glass .card-price { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .card-glass:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-5px);
+        }
+        .card-glass .card-actions {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            opacity: 0;
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+        }
+        .card-glass:hover .card-actions {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+        .card-glass .action-btn { background: transparent; color: #fff; box-shadow: none; }
+        .card-glass .action-btn:hover { background: rgba(255,255,255,0.4); }
+
+        /* =========================================
+           4. CLAYMORPHISM (3D Inflated)
+           ========================================= */
+        .card-clay {
+            background: #ff7979;
+            border-radius: 35px;
+            box-shadow: 20px 20px 40px #d96666, -20px -20px 40px #ff8c8c, inset 6px 6px 15px rgba(255,255,255,0.4), inset -6px -6px 15px rgba(0,0,0,0.1);
+            color: #fff;
+        }
+        .card-clay .card-price { color: #ffeaa7; }
+        .card-clay:hover .img-box img {
+            transform: translateY(-15px);
+        }
+        .card-clay .card-actions {
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: 0.5s ease;
+        }
+        .card-clay:hover .card-actions { top: 20px; }
+        .card-clay .action-btn {
+            background: #f6e58d;
+            color: #333;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.1), inset 2px 2px 5px rgba(255,255,255,0.8);
+        }
+
+        /* =========================================
+           5. DETAILED / E-COMMERCE
+           ========================================= */
+        .card-detailed {
+            border: 1px solid #eee;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .card-detailed:hover {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .card-detailed .img-box { background: #f8f9fa; }
+        .card-detailed:hover .img-box img { transform: scale(1.08); }
+        .card-detailed .card-actions {
+            bottom: 20px;
+            right: 20px;
+            flex-direction: column;
+        }
+        .card-detailed .action-btn {
+            transform: translateX(50px);
+            opacity: 0;
+        }
+        .card-detailed:hover .action-btn {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .card-detailed .action-btn:nth-child(1) { transition-delay: 0.1s; }
+        .card-detailed .action-btn:nth-child(2) { transition-delay: 0.2s; }
+        .card-detailed .action-btn:nth-child(3) { transition-delay: 0.3s; }
+        
+        /* =========================================
+           6. DARK ELEGANCE
+           ========================================= */
+        .card-dark {
+            background: #111;
+            color: #f1f1f1;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+        .card-dark .card-price { color: #d4af37; } /* Gold */
+        .card-dark .img-box {
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+        }
+        .card-dark:hover .img-box img {
+            transform: scale(1.1);
+            filter: drop-shadow(0 20px 20px rgba(212, 175, 55, 0.2));
+        }
+        .card-dark .card-actions {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            width: 100%;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+            padding: 20px 0;
+            backdrop-filter: blur(4px);
+        }
+        .card-dark:hover .card-actions {
+            opacity: 1;
+        }
+        .card-dark .action-btn {
+            background: transparent;
+            color: #d4af37;
+            border: 1px solid #d4af37;
+        }
+        .card-dark .action-btn:hover {
+            background: #d4af37;
+            color: #111;
+        }
+
+        /* =========================================
+           7. TYPOGRAPHIC / BRUTALIST
+           ========================================= */
+        .card-typo {
+            border-radius: 0;
+            border: 3px solid #000;
+            box-shadow: 8px 8px 0px #000;
+        }
+        .card-typo:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px #000;
+        }
+        .card-typo .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .card-typo .card-price { color: #000; font-size: 1.5rem; }
+        .card-typo .card-actions {
+            top: 10px;
+            right: 10px;
+        }
+        .card-typo .action-btn {
+            border: 2px solid #000;
+            border-radius: 0;
+            background: #fff;
+            box-shadow: 3px 3px 0px #000;
+        }
+        .card-typo .action-btn:hover {
+            background: #000;
+            color: #fff;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #ff4757;
+        }
+
+        /* =========================================
+           8. GEOMETRIC (Mondrian Inspired)
+           ========================================= */
+        .card-geo {
+            border-radius: 0;
+            border: 4px solid #000;
+            background: #fff;
+            overflow: visible; /* To allow floating squares */
+        }
+        .card-geo .img-box {
+            border-bottom: 4px solid #000;
+            background: #f1f2f6;
+        }
+        .card-geo:hover {
+            border-color: #3742fa;
+        }
+        .card-geo .card-actions {
+            bottom: -20px;
+            right: 20px;
+            gap: 0;
+        }
+        .card-geo .action-btn {
+            border-radius: 0;
+            border: 2px solid #000;
+            width: 45px; height: 45px;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        .card-geo:hover .action-btn {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .card-geo .action-btn:nth-child(1) { background: #ff4757; color:#fff;}
+        .card-geo .action-btn:nth-child(2) { background: #eccc68; color:#000;}
+        .card-geo .action-btn:nth-child(3) { background: #1e90ff; color:#fff;}
+        .card-geo .action-btn:hover { filter: brightness(1.2); }
+
+        /* =========================================
+           9. MATERIAL DESIGN M3
+           ========================================= */
+        .card-m3 {
+            background: #fdfcff;
+            border-radius: 28px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .card-m3:hover {
+            background: #eaddff; /* dynamic color shift */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .card-m3 .img-box {
+            border-radius: 28px 28px 0 0;
+            background: #f4eff4;
+            transition: 0.3s;
+        }
+        .card-m3:hover .img-box { background: #d0bcff; }
+        .card-m3 .card-actions {
+            bottom: 20px;
+            left: 20px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        .card-m3:hover .card-actions {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .card-m3 .action-btn {
+            background: transparent;
+            box-shadow: none;
+            color: #6750a4;
+        }
+        .card-m3 .action-btn:hover { background: #f3edf7; }
+
+        /* =========================================
+           10. ORGANIC / ARTISTIC
+           ========================================= */
+        .card-organic {
+            background: #fbe6d4;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            padding-top: 2rem;
+        }
+        .card-organic:hover {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            background: #f5d3b3;
+        }
+        .card-organic .img-box { background: transparent; }
+        .card-organic:hover .img-box img {
+            transform: rotate(-10deg) scale(1.1);
+        }
+        .card-organic .card-title {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            text-align: center;
+        }
+        .card-organic .card-price { text-align: center; color: #8e44ad; }
+        .card-organic .card-actions {
+            top: 20px;
+            left: 20px;
+            flex-direction: column;
+        }
+        .card-organic .action-btn {
+            background: #fff;
+            color: #8e44ad;
+            transform: translateX(-50px) rotate(-180deg);
+            opacity: 0;
+        }
+        .card-organic:hover .action-btn {
+            transform: translateX(0) rotate(0);
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Amazing Product Cards</h1>
+        <p>10 Distinct Styles • Advanced Hover Effects • Action Icons</p>
+    </div>
+
+    <div class="card-grid">
+
+        <!-- 1. Neumorphic -->
+        <div class="card card-neumorphic">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-regular fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Nike Neumorphic</h3>
+                <p class="card-price">$49.99</p>
+            </div>
+        </div>
+
+        <!-- 2. Color Block -->
+        <div class="card card-color-block">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-regular fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Sports Block</h3>
+                <p class="card-price">$49.99</p>
+            </div>
+        </div>
+
+        <!-- 3. Glassmorphism -->
+        <div class="card-glass-wrap">
+            <div class="card card-glass">
+                <div class="img-box">
+                    <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                    <div class="card-actions">
+                        <button class="action-btn" title="Wishlist"><i class="fa-solid fa-heart"></i></button>
+                        <button class="action-btn" title="Quick View"><i class="fa-solid fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-bag-shopping"></i></button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Glass Runner</h3>
+                    <p class="card-price">$59.99</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Claymorphism -->
+        <div class="card card-clay">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-expand"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Clay Sneakers</h3>
+                <p class="card-price">$69.99</p>
+            </div>
+        </div>
+
+        <!-- 5. Detailed -->
+        <div class="card card-detailed">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Gaze ZX Pro</h3>
+                <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">Premium running shoes</p>
+                <p class="card-price">$99.00</p>
+            </div>
+        </div>
+
+        <!-- 6. Dark Elegance -->
+        <div class="card card-dark">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-regular fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-bag-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Luxury Edition</h3>
+                <p class="card-price">$149.99</p>
+            </div>
+        </div>
+
+        <!-- 7. Typographic -->
+        <div class="card card-typo">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Bold<br>Walk</h3>
+                <p class="card-price">$89.00</p>
+            </div>
+        </div>
+
+        <!-- 8. Geometric -->
+        <div class="card card-geo">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Bauhaus Kicks</h3>
+                <p class="card-price">$29.00</p>
+            </div>
+        </div>
+
+        <!-- 9. Material M3 -->
+        <div class="card card-m3">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-regular fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-regular fa-eye"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">M3 Dynamic</h3>
+                <p class="card-price">$49.99</p>
+            </div>
+        </div>
+
+        <!-- 10. Organic -->
+        <div class="card card-organic">
+            <div class="img-box">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" alt="Shoe">
+                <div class="card-actions">
+                    <button class="action-btn" title="Wishlist"><i class="fa-solid fa-heart"></i></button>
+                    <button class="action-btn" title="Quick View"><i class="fa-solid fa-search"></i></button>
+                    <button class="action-btn" title="Add to Cart"><i class="fa-solid fa-cart-shopping"></i></button>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Nature Runner</h3>
+                <p class="card-price">$79.90</p>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

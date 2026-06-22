@@ -1,0 +1,448 @@
+'use server';
+
+import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { Order, CartItem, StatusLogItem } from '@/lib/types';
+import { getCustomerSession } from '@/lib/utils/customer-auth';
+
+interface OrderRow {
+  id: string;
+  order_number: string;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_id?: string | null;
+  items?: unknown;
+  subtotal?: string | number | null;
+  total?: string | number | null;
+  status: string;
+  notes?: string | null;
+  staff_notes?: string | null;
+  status_logs?: unknown;
+  review_email_pending?: boolean | null;
+  delivered_at?: string | null;
+  tracking_number?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
+  cancel_reason?: string | null;
+  refund_amount?: string | number | null;
+  deleted_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const mapOrder = (row: OrderRow): Order => ({
+  id: row.id,
+  orderNumber: row.order_number,
+  customerName: row.customer_name || undefined,
+  customerPhone: row.customer_phone || undefined,
+  customerId: row.customer_id || undefined,
+  items: (row.items || []) as CartItem[],
+  subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
+  total: row.total ? parseFloat(row.total.toString()) : 0,
+  status: row.status as Order['status'],
+  notes: row.notes || undefined,
+  staffNotes: row.staff_notes || undefined,
+  statusLogs: (row.status_logs || []) as StatusLogItem[],
+  reviewEmailPending: row.review_email_pending ?? false,
+  deliveredAt: row.delivered_at || undefined,
+  trackingNumber: row.tracking_number || undefined,
+  courierName: row.courier_name || undefined,
+  trackingUrl: row.tracking_url || undefined,
+  cancelReason: row.cancel_reason || undefined,
+  refundAmount: row.refund_amount ? parseFloat(row.refund_amount.toString()) : undefined,
+  deletedAt: row.deleted_at || undefined,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
+export const createOrder = async (order: {
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  items: CartItem[];
+  subtotal: number;
+  total: number;
+  notes?: string;
+}): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+    const session = await getCustomerSession();
+    let customerId = session ? session.id : null;
+
+    // Auto-create/lookup guest customer record if phone is provided and they aren't logged in
+    if (!customerId && (order.customerPhone || order.customerEmail)) {
+      try {
+        let existingCustomer = null;
+
+        // 1. Try to find by email if email is provided
+        if (order.customerEmail) {
+          const { data } = await supabaseAdmin
+            .from('customers')
+            .select('id, phone, email')
+            .eq('email', order.customerEmail.trim().toLowerCase())
+            .maybeSingle();
+          if (data) {
+            existingCustomer = data;
+          }
+        }
+
+        // 2. Try to find by phone if not found by email
+        if (!existingCustomer && order.customerPhone) {
+          const rawPhone = order.customerPhone.trim();
+          const cleanPhone = rawPhone.replace(/\D/g, '');
+
+          // Check raw phone
+          let { data } = await supabaseAdmin
+            .from('customers')
+            .select('id, phone, email')
+            .eq('phone', rawPhone)
+            .maybeSingle();
+
+          if (!data && cleanPhone) {
+            // Check clean phone
+            const { data: dataClean } = await supabaseAdmin
+              .from('customers')
+              .select('id, phone, email')
+              .eq('phone', cleanPhone)
+              .maybeSingle();
+            data = dataClean;
+          }
+          
+          if (data) {
+            existingCustomer = data;
+          }
+        }
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+          
+          // Update customer fields if they changed or were empty
+          const updates: Record<string, any> = {};
+          if (order.customerEmail && existingCustomer.email !== order.customerEmail) {
+            updates.email = order.customerEmail.trim().toLowerCase();
+          }
+          if (order.customerPhone && existingCustomer.phone !== order.customerPhone) {
+            updates.phone = order.customerPhone.trim();
+          }
+          if (order.customerName && order.customerName !== 'Guest Customer') {
+            updates.name = order.customerName;
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await supabaseAdmin
+              .from('customers')
+              .update(updates)
+              .eq('id', customerId);
+          }
+        } else {
+          // Create new customer record
+          const { data: newCustomer, error: insertError } = await supabaseAdmin
+            .from('customers')
+            .insert({
+              name: order.customerName || 'Guest Customer',
+              phone: order.customerPhone ? order.customerPhone.trim() : null,
+              email: order.customerEmail ? order.customerEmail.trim().toLowerCase() : null,
+              password_hash: null
+            })
+            .select('id')
+            .single();
+
+          if (insertError) {
+            console.error('Error inserting customer:', insertError);
+            // Fallback: if it still fails on unique email or phone, query again to link it
+            if (order.customerEmail) {
+              const { data } = await supabaseAdmin
+                .from('customers')
+                .select('id')
+                .eq('email', order.customerEmail.trim().toLowerCase())
+                .maybeSingle();
+              if (data) customerId = data.id;
+            }
+            if (!customerId && order.customerPhone) {
+              const { data } = await supabaseAdmin
+                .from('customers')
+                .select('id')
+                .eq('phone', order.customerPhone.trim())
+                .maybeSingle();
+              if (data) customerId = data.id;
+            }
+          } else if (newCustomer) {
+            customerId = newCustomer.id;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to auto-create guest customer:', err);
+      }
+    }
+
+    // Initialize the timeline with the creation event
+    const initialLogs: StatusLogItem[] = [
+      {
+        id: crypto.randomUUID(),
+        type: 'creation',
+        message: 'Order created clicked by customer on WhatsApp',
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const { data, error } = await supabase
+      .from('orders')
+      .insert({
+        customer_name: order.customerName,
+        customer_phone: order.customerPhone,
+        customer_id: customerId,
+        items: order.items,
+        subtotal: order.subtotal,
+        total: order.total,
+        notes: order.notes,
+        status: 'pending',
+        status_logs: initialLogs
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    const mapped = mapOrder(data);
+
+    // Await the email dispatch so the serverless function does not exit/freeze before delivery completes
+    try {
+      const { onOrderPlaced } = await import('@/lib/email/triggers');
+      await onOrderPlaced(mapped, { email: order.customerEmail, name: order.customerName, phone: order.customerPhone });
+    } catch (err) {
+      console.error('[Email Trigger] failed in createOrder:', err);
+    }
+
+    return mapped;
+  } catch (error) {
+    console.error('[orders] createOrder failed:', error);
+    throw error;
+  }
+};
+
+export const getOrders = async (): Promise<Order[]> => {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(mapOrder);
+  } catch (error) {
+    console.error('[orders] getOrders failed:', error);
+    throw error;
+  }
+};
+
+export const getOrdersByCustomerId = async (customerId: string): Promise<Order[]> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(mapOrder);
+  } catch (error) {
+    console.error('[orders] getOrdersByCustomerId failed:', error);
+    throw error;
+  }
+};
+
+
+export const updateOrderStatus = async (id: string, status: Order['status']): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+
+    // 1. Fetch current order to get its status logs
+    const { data: currentOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('status, status_logs')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const oldStatus = currentOrder.status;
+    const currentLogs = (currentOrder.status_logs || []) as StatusLogItem[];
+
+    // 2. Add log entry if status changed
+    let updatedLogs = currentLogs;
+    if (oldStatus !== status) {
+      const logEntry: StatusLogItem = {
+        id: crypto.randomUUID(),
+        type: 'status_change',
+        message: `Order status changed from ${oldStatus.toUpperCase()} to ${status.toUpperCase()}`,
+        status: status,
+        createdAt: new Date().toISOString()
+      };
+      updatedLogs = [...currentLogs, logEntry];
+    }
+
+    // 3. Update order in database
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ 
+        status,
+        status_logs: updatedLogs
+      })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    const mapped = mapOrder(data);
+
+    // Await the email dispatch so the serverless function does not exit/freeze before delivery completes
+    if (oldStatus !== status) {
+      try {
+        const { onOrderStatusChange } = await import('@/lib/email/triggers');
+        await onOrderStatusChange(mapped, { name: mapped.customerName, phone: mapped.customerPhone }, status);
+      } catch (err) {
+        console.error('[Email Trigger] failed in updateOrderStatus trigger:', err);
+      }
+    }
+
+    return mapped;
+  } catch (error) {
+    console.error('[orders] updateOrderStatus failed:', error);
+    throw error;
+  }
+};
+
+export const updateOrderDetails = async (
+  id: string,
+  updates: {
+    status?: Order['status'];
+    staffNotes?: string;
+    statusLogs?: StatusLogItem[];
+    deliveredAt?: string;
+    trackingNumber?: string;
+    courierName?: string;
+    trackingUrl?: string;
+    cancelReason?: string;
+    refundAmount?: number;
+    reviewEmailPending?: boolean;
+  }
+): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+
+    // Fetch current state before update to detect changes
+    const { data: currentOrder } = await supabase
+      .from('orders')
+      .select('status, tracking_number')
+      .eq('id', id)
+      .single();
+      
+    const oldStatus = currentOrder?.status;
+    const oldTracking = currentOrder?.tracking_number;
+
+    const payload: any = {};
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.staffNotes !== undefined) payload.staff_notes = updates.staffNotes;
+    if (updates.statusLogs !== undefined) payload.status_logs = updates.statusLogs;
+    if (updates.deliveredAt !== undefined) payload.delivered_at = updates.deliveredAt;
+    if (updates.trackingNumber !== undefined) payload.tracking_number = updates.trackingNumber;
+    if (updates.courierName !== undefined) payload.courier_name = updates.courierName;
+    if (updates.trackingUrl !== undefined) payload.tracking_url = updates.trackingUrl;
+    if (updates.cancelReason !== undefined) payload.cancel_reason = updates.cancelReason;
+    if (updates.refundAmount !== undefined) payload.refund_amount = updates.refundAmount;
+    if (updates.reviewEmailPending !== undefined) payload.review_email_pending = updates.reviewEmailPending;
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update(payload)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    const mapped = mapOrder(data);
+
+    // Call triggers if status changed OR if status is shipped/out_for_delivery and tracking details were added/updated
+    const statusChanged = updates.status !== undefined && oldStatus !== updates.status;
+    const trackingUpdated = ['shipped', 'out_for_delivery'].includes(mapped.status) && 
+                            updates.trackingNumber !== undefined && 
+                            oldTracking !== updates.trackingNumber;
+
+    if (statusChanged || trackingUpdated) {
+      try {
+        const { onOrderStatusChange } = await import('@/lib/email/triggers');
+        await onOrderStatusChange(mapped, { name: mapped.customerName, phone: mapped.customerPhone }, mapped.status);
+      } catch (err) {
+        console.error('[Email Trigger] failed in updateOrderDetails:', err);
+      }
+    }
+
+    return mapped;
+  } catch (error) {
+    console.error('[orders] updateOrderDetails failed:', error);
+    throw error;
+  }
+};
+
+export const getDeletedOrders = async (): Promise<Order[]> => {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(mapOrder);
+  } catch (error) {
+    console.error('[orders] getDeletedOrders failed:', error);
+    throw error;
+  }
+};
+
+export const deleteOrder = async (id: string): Promise<void> => {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('[orders] deleteOrder failed:', error);
+    throw error;
+  }
+};
+
+export const restoreOrder = async (id: string): Promise<void> => {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({ deleted_at: null })
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('[orders] restoreOrder failed:', error);
+    throw error;
+  }
+};
+
+export const hardDeleteOrder = async (id: string): Promise<void> => {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('[orders] hardDeleteOrder failed:', error);
+    throw error;
+  }
+};
