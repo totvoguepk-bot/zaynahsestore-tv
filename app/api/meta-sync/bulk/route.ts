@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     let query = supabaseAdmin
       .from('products')
-      .select('*, product_images(*), product_variants(*), categories(*)')
+      .select('*, product_images(*), product_variants(*), categories!category_id(*)')
       .eq('active', true);
 
     if (productIds !== null) {
