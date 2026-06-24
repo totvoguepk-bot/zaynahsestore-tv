@@ -61,7 +61,6 @@ export default async function CatalogPage() {
       categories={categories}
       settings={settings}
       reviews={reviews}
-      socialProofs={[]}
       sections={sections}
     />
   );
