@@ -3,27 +3,21 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
-
-interface ZoomImage {
-  url: string;
-  alt: string;
-}
+import { X, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface ReviewImageZoomModalProps {
   isOpen: boolean;
-  images: ZoomImage[];
-  initialIndex: number;
+  imageUrl: string;
+  alt?: string;
   onClose: () => void;
 }
 
 export default function ReviewImageZoomModal({
   isOpen,
-  images,
-  initialIndex,
+  imageUrl,
+  alt,
   onClose,
 }: ReviewImageZoomModalProps) {
-  const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -40,23 +34,17 @@ export default function ReviewImageZoomModal({
   }, []);
 
   useEffect(() => {
-    setActiveIndex(initialIndex);
-  }, [initialIndex]);
-
-  useEffect(() => {
     resetZoom();
-  }, [activeIndex]);
+  }, [imageUrl]);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, activeIndex, zoomScale]);
+  }, [isOpen, onClose]);
 
   const resetZoom = useCallback(() => {
     setZoomScale(1);
@@ -64,16 +52,6 @@ export default function ReviewImageZoomModal({
     setIsDragging(false);
     wasDragging.current = false;
   }, []);
-
-  const goPrev = useCallback(() => {
-    if (zoomScale > 1) return;
-    setActiveIndex(i => (i - 1 + images.length) % images.length);
-  }, [images.length, zoomScale]);
-
-  const goNext = useCallback(() => {
-    if (zoomScale > 1) return;
-    setActiveIndex(i => (i + 1) % images.length);
-  }, [images.length, zoomScale]);
 
   const handleZoomIn = () => setZoomScale(s => Math.min(s + 0.5, 4));
   const handleZoomOut = () => setZoomScale(s => {
@@ -135,12 +113,12 @@ export default function ReviewImageZoomModal({
     }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (e.targetTouches.length < 2) initialPinchDist.current = null;
+  const handleTouchEnd = () => {
+    initialPinchDist.current = null;
     if (zoomScale > 1) setIsDragging(false);
   };
 
-  const handleImageClick = (e: React.MouseEvent) => {
+  const handleImageClick = () => {
     if (wasDragging.current) {
       wasDragging.current = false;
       return;
@@ -159,10 +137,7 @@ export default function ReviewImageZoomModal({
     resetZoom();
   };
 
-  const currentImage = images[activeIndex];
-  const showNav = images.length > 1 && zoomScale === 1;
-
-  if (!mounted || !isOpen || !currentImage) return null;
+  if (!mounted || !isOpen || !imageUrl) return null;
 
   return createPortal(
     <div
@@ -172,7 +147,6 @@ export default function ReviewImageZoomModal({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Close button */}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); handleBackdropClick(); }}
@@ -182,7 +156,6 @@ export default function ReviewImageZoomModal({
         <X className="w-5 h-5" />
       </button>
 
-      {/* Zoom controls */}
       {zoomScale > 1 && (
         <div className="absolute top-4 left-4 z-20 flex gap-2">
           <button
@@ -204,21 +177,8 @@ export default function ReviewImageZoomModal({
         </div>
       )}
 
-      {/* Prev arrow */}
-      {showNav && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); goPrev(); }}
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-          aria-label="Previous image"
-        >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-      )}
-
-      {/* Main image */}
       <div
-        className="relative w-full max-w-4xl h-[65dvh] md:h-[80dvh] flex items-center justify-center overflow-hidden px-4 md:px-20"
+        className="relative w-full max-w-4xl h-[65dvh] md:h-[80dvh] flex items-center justify-center overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -235,44 +195,14 @@ export default function ReviewImageZoomModal({
           onClick={handleImageClick}
         >
           <Image
-            src={currentImage.url}
-            alt={currentImage.alt}
+            src={imageUrl}
+            alt={alt || 'Customer feedback'}
             fill
             sizes="90vw"
             className="object-contain pointer-events-none"
           />
         </div>
       </div>
-
-      {/* Next arrow */}
-      {showNav && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); goNext(); }}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-          aria-label="Next image"
-        >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-      )}
-
-      {/* Dot indicators */}
-      {showNav && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10 items-center">
-          {images.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }}
-              className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i === activeIndex ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/60'}`}
-              aria-label={`Image ${i + 1} of ${images.length}`}
-            />
-          ))}
-          <span className="ml-3 text-xs text-white/40 font-medium hidden sm:inline">
-            {activeIndex + 1}/{images.length}
-          </span>
-        </div>
-      )}
     </div>,
     document.body
   );

@@ -49,8 +49,7 @@ export default function ReviewsPageClient({
 
   const socialProofs = initialSocialProofs;
 
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const lightboxImages = socialProofs.map(p => ({ url: p.imageUrl, alt: p.caption || 'Customer feedback' }));
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const avgRating = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -409,7 +408,7 @@ export default function ReviewsPageClient({
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {socialProofs.map((proof) => (
                     <div key={proof.id} className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="relative w-full bg-gray-100 dark:bg-gray-800 cursor-zoom-in" onClick={() => setLightboxIndex(socialProofs.indexOf(proof))}>
+                      <div className="relative w-full bg-gray-100 dark:bg-gray-800 cursor-zoom-in" onClick={() => setLightboxImage(proof.imageUrl)}>
                         <Image src={proof.imageUrl} alt={proof.caption || 'Customer feedback'} width={600} height={800} className="w-full h-auto object-contain" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                       </div>
                       <div className="p-3 space-y-1.5">
@@ -453,10 +452,9 @@ export default function ReviewsPageClient({
 
     {/* Lightbox Modal */}
     <ReviewImageZoomModal
-      isOpen={lightboxIndex !== null}
-      images={lightboxImages}
-      initialIndex={lightboxIndex ?? 0}
-      onClose={() => setLightboxIndex(null)}
+      isOpen={lightboxImage !== null}
+      imageUrl={lightboxImage ?? ''}
+      onClose={() => setLightboxImage(null)}
     />
     </>
   );
