@@ -4,11 +4,7 @@ import { getProducts } from '@/lib/services/products';
 import { getCategories } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
 import { getTopReviews } from '@/lib/services/reviews';
-import { getTopSocialProofs } from '@/lib/services/socialProof';
 import { getHomepageSections } from '@/lib/services/sections';
-import { SocialProof } from '@/lib/types';
-
-import { getSiteUrl } from '@/lib/site-url-server';
 import { Metadata } from 'next';
 
 export const revalidate = 86400; // 24 hours — webhooks purge on admin save
@@ -16,7 +12,7 @@ export const revalidate = 86400; // 24 hours — webhooks purge on admin save
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const settings = await getSettings();
-    const siteUrl = await getSiteUrl(settings);
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
     const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
     const tagline = settings.tagline || 'Premium Mobile Shop';
@@ -59,26 +55,13 @@ export default async function CatalogPage() {
     getHomepageSections(true),
   ]);
 
-  let socialProofs: SocialProof[] = [];
-  try {
-    const timeoutPromise = new Promise<[]>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 5000)
-    );
-    socialProofs = await Promise.race([
-      getTopSocialProofs(3),
-      timeoutPromise,
-    ]);
-  } catch {
-    // social proofs non-critical — silently skip
-  }
-
   return (
     <StoreFront
       initialProducts={products}
       categories={categories}
       settings={settings}
       reviews={reviews}
-      socialProofs={socialProofs}
+      socialProofs={[]}
       sections={sections}
     />
   );
