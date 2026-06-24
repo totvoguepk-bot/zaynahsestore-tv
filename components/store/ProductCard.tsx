@@ -1774,10 +1774,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
     }
   `;
 
-  // Scoped CSS styles injection helper
-  const stylesInjected = typeof window !== 'undefined' ? (
-    <style dangerouslySetInnerHTML={{ __html: customCss }} />
-  ) : null;
+  const stylesInjected = <style dangerouslySetInnerHTML={{ __html: customCss }} />;
 
   // Shared optimized images renderer respecting dynamic aspect ratio and hover style settings
   const renderCardImages = (fitClass: 'object-contain' | 'object-cover' = 'object-contain') => {
