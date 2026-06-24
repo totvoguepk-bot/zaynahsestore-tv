@@ -1,7 +1,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Copy } from 'lucide-react';
 import ProductForm from '@/components/admin/ProductForm';
 import { getProductById } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
@@ -41,6 +41,13 @@ export default async function EditProductPage({ params }: PageProps) {
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Products</span>
+          </Link>
+          <Link
+            href={`/admin/products/new?duplicate=${product.id}`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-[#16162a] text-slate-700 dark:text-gray-200 text-xs font-bold transition-all hover:bg-slate-50 dark:hover:bg-gray-800 shadow-sm cursor-pointer"
+          >
+            <Copy className="h-4 w-4" />
+            <span>Duplicate</span>
           </Link>
           <a
             href={`${getClientSiteUrl(settings)}/product/${product.slug}`}

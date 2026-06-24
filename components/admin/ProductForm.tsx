@@ -46,7 +46,7 @@ const standardColorMap: Record<string, string> = {
 
 export default function ProductForm({ categories, initialProduct, aiEnabled, storeUrl }: ProductFormProps) {
   const router = useRouter();
-  const isEdit = !!initialProduct;
+  const isEdit = !!initialProduct?.id;
 
   // 1. Core States
   const [name, setName] = useState(initialProduct?.name || '');
@@ -127,6 +127,14 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       setIsAiGenerating(true);
       toast.info('AI is drafting professional SEO product copy...');
 
+      // Auto-generate slug from current name (fixes duplicate mode where slug stays stuck)
+      const generatedSlug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+      setSlug(generatedSlug);
+
       const selectedCategory = categories.find(c => c.id === categoryId);
       const categoryName = selectedCategory ? selectedCategory.name : 'Kids Clothes';
 
@@ -139,7 +147,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
           price: parseFloat(price) || 0,
           category: categoryName,
           stock: 10,
-          slug: slug.trim()
+          slug: generatedSlug
         }
       };
 
