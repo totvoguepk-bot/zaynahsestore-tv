@@ -190,11 +190,20 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
         const [b, sg, prods] = await Promise.all([
           getBadges(),
           getSizeGuides(),
-          supabaseClient.from('products').select('id, name, price')
+          supabaseClient.from('products').select('id, name, price, sku').is('deleted_at', null).order('name')
         ]);
         setAllBadges(b);
         setSizeGuidesList(sg);
-        setProductList((prods.data || []).filter((p: any) => p.id !== initialProduct?.id) as any);
+        const allProducts: any[] = prods.data || [];
+        const seen = new Set<string>();
+        const unique = allProducts.filter((p: any) => {
+          if (p.id === initialProduct?.id) return false;
+          const key = p.id;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setProductList(unique as any);
       } catch (err) {
         console.error('Failed to load badges, size guides or products:', err);
       }
@@ -396,7 +405,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
 
   // Auto-generate slug from name
   useEffect(() => {
-    if (!isEdit && name) {
+    if (!isEdit && name && !initialProduct?.slug) {
       const timer = setTimeout(() => {
         setSlug(
           name
@@ -408,7 +417,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [name, isEdit]);
+  }, [name, isEdit, initialProduct?.slug]);
 
   // Handle Image Uploads
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

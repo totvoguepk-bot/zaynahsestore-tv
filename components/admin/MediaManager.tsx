@@ -124,6 +124,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const [globalAi, setGlobalAi] = useState(true);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkCompletedIds, setBulkCompletedIds] = useState<string[]>([]);
+  const [bulkFailedIds, setBulkFailedIds] = useState<string[]>([]);
+  const [bulkTotal, setBulkTotal] = useState(0);
 
   // ─── Edit Metadata Modal State ───────────────────────────────────────────
   const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
@@ -856,21 +859,46 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
   const handleBulkGenerate = async () => {
     if (!selectedIds.length) return;
+    const CONCURRENCY = 3;
+    const itemsToGen = media.filter(m => selectedIds.includes(m.id));
+    setBulkGenerating(true);
+    setBulkTotal(itemsToGen.length);
+    setBulkCompletedIds([]);
+    setBulkFailedIds([]);
+    const toastId = toast.loading(`Generating metadata for ${itemsToGen.length} files...`);
+    let localDone = 0;
+    let localFailed = 0;
     try {
-      setBulkGenerating(true);
-      const itemsToGen = media.filter(m => selectedIds.includes(m.id));
-      const toastId = toast.loading(`Generating metadata for ${itemsToGen.length} files...`);
-      for (const item of itemsToGen) {
-        try {
-          await fetch('/api/media/ai-meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image_url: item.file_url, media_id: item.id }) });
-          await new Promise(res => setTimeout(res, 600));
-        } catch (e) { console.warn('[Media Bulk Vision] Skipped:', item.original_filename, e); }
+      for (let i = 0; i < itemsToGen.length; i += CONCURRENCY) {
+        const chunk = itemsToGen.slice(i, i + CONCURRENCY);
+        const processedBefore = i;
+        toast.loading(`Processing batch — (${processedBefore}/${itemsToGen.length}) done, starting next ${chunk.length}...`, { id: toastId });
+        await Promise.allSettled(chunk.map(async (item, chunkIdx) => {
+          setGeneratingId(item.id);
+          console.log(`[Vision AI] Processing (${i + chunkIdx + 1}/${itemsToGen.length}): ${item.original_filename}`);
+          try {
+            const res = await fetch('/api/media/ai-meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image_url: item.file_url, media_id: item.id }) });
+            if (!res.ok) throw new Error(await res.text());
+            setBulkCompletedIds(prev => [...prev, item.id]);
+            localDone++;
+          } catch (e) {
+            console.warn('[Media Bulk Vision] Skipped:', item.original_filename, e);
+            setBulkFailedIds(prev => [...prev, item.id]);
+            localFailed++;
+          }
+        }));
+        toast.loading(`Batch complete — (${localDone + localFailed}/${itemsToGen.length}) done (${localDone} ok, ${localFailed} failed)`, { id: toastId });
+        await new Promise(res => setTimeout(res, 300));
       }
-      toast.success('Bulk vision metadata complete!', { id: toastId });
+      setGeneratingId(null);
+      toast.success(`Bulk vision metadata complete! (${localDone} succeeded, ${localFailed} failed)`, { id: toastId });
       setSelectedIds([]);
       fetchMedia();
-    } catch { toast.error('Bulk vision process failed'); }
-    finally { setBulkGenerating(false); }
+    } catch (e) {
+      console.error('[Media Bulk Vision] Fatal error:', e);
+      toast.error('Bulk vision process failed', { id: toastId });
+    }
+    finally { setBulkGenerating(false); setBulkCompletedIds([]); setBulkFailedIds([]); setBulkTotal(0); setGeneratingId(null); }
   };
 
   const handleUpdateItem = async (e: React.FormEvent) => {
@@ -925,6 +953,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     const { showCheckbox = true, showBadge = true, showActions = true } = opts;
     const isGenerating = generatingId === item.id;
     const isVideo = item.mime_type?.startsWith('video/') || item.file_url.match(/\.(mp4|mov|webm)$/i);
+    const isBulkDone = bulkCompletedIds.includes(item.id);
+    const isBulkFailed = bulkFailedIds.includes(item.id);
+    const isBulkPending = bulkGenerating && !isBulkDone && !isBulkFailed && generatingId !== item.id;
 
     return (
       <div
@@ -981,12 +1012,36 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
         )}
 
         {/* AI Badge */}
-        {showBadge && mode === 'library' && (
+        {showBadge && mode === 'library' && !bulkGenerating && (
           <div className="absolute top-3 right-3 z-10">
             {item.ai_generated
               ? <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500 text-white shadow-sm"><CheckCircle2 className="w-2.5 h-2.5" />AI</span>
               : <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-500/80 text-white shadow-sm">None</span>
             }
+          </div>
+        )}
+
+        {/* Bulk Progress Overlay */}
+        {bulkGenerating && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            {isBulkDone && (
+              <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg ring-2 ring-emerald-300">
+                <Check className="h-6 w-6 text-white" />
+              </div>
+            )}
+            {isBulkFailed && (
+              <div className="h-10 w-10 rounded-full bg-red-500 flex items-center justify-center shadow-lg ring-2 ring-red-300">
+                <X className="h-6 w-6 text-white" />
+              </div>
+            )}
+            {!isBulkDone && !isBulkFailed && isGenerating && (
+              <div className="h-10 w-10 rounded-full bg-amber-500 flex items-center justify-center shadow-lg ring-2 ring-amber-300">
+                <Loader2 className="h-6 w-6 text-white animate-spin" />
+              </div>
+            )}
+            {isBulkPending && (
+              <div className="absolute inset-0 bg-black/30 rounded-2xl" />
+            )}
           </div>
         )}
 
@@ -1271,6 +1326,39 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             )}
             <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple accept="image/*,video/*" className="hidden" />
           </div>
+        </div>
+      )}
+
+      {/* ── BULK VISION AI PROGRESS ────────────────────────────────────── */}
+      {bulkGenerating && bulkTotal > 0 && (
+        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="font-bold text-gray-900 dark:text-white">
+                Processing Vision AI Metadata
+              </span>
+            </div>
+            <span className="text-gray-500 dark:text-gray-400 font-medium">
+              {bulkCompletedIds.length + bulkFailedIds.length} / {bulkTotal} done
+              {bulkFailedIds.length > 0 && (
+                <span className="text-red-500 ml-1">({bulkFailedIds.length} failed)</span>
+              )}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-amber-500 h-full rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${((bulkCompletedIds.length + bulkFailedIds.length) / bulkTotal) * 100}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-gray-400">
+            {generatingId
+              ? `Currently processing: ${media.find(m => m.id === generatingId)?.original_filename || '...'}`
+              : bulkCompletedIds.length + bulkFailedIds.length >= bulkTotal
+                ? 'Processing complete — refreshing library...'
+                : 'Waiting...'}
+          </p>
         </div>
       )}
 
