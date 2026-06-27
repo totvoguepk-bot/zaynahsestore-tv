@@ -81,13 +81,10 @@ export async function POST(req: NextRequest) {
     const customerPhone = cleanPhone(order.customer_phone || order.customers?.phone || '');
     const orderItems = Array.isArray(order.items) ? order.items : [];
     const firstItem = orderItems[0] || {};
-    const itemName = firstItem.name || 'Order items';
+    const itemName = firstItem.name || s.postex_default_product || '';
     const itemSku = firstItem.sku || '';
 
-    // Apply default product name if checkbox says so
-    const deliveryDetail = (s.postex_product_check || '1') === '1'
-      ? itemName
-      : (s.postex_default_product || 'Kids Clothes');
+    const deliveryDetail = s.postex_default_product || '';
 
     // Auto weight calculation
     let finalWeight = parseFloat(String(weight)) || parseFloat(s.postex_default_weight) || 0.5;
@@ -110,29 +107,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Remarks logic
-    let finalRemarks = remarks || '';
-    const pNote = (remarks || '').trim();
-    const dNote = (s.postex_default_remarks || '').trim();
+    // Remarks — strictly the Default Delivery Note from settings, no concatenation
+    const finalRemarks = s.postex_default_remarks || 'Call before delivery';
 
-    if ((s.postex_notes_check || '1') === '1') {
-      if (pNote && dNote) {
-        if (pNote.toLowerCase().includes(dNote.toLowerCase())) {
-          finalRemarks = pNote;
-        } else if (dNote.toLowerCase().includes(pNote.toLowerCase())) {
-          finalRemarks = dNote;
-        } else {
-          finalRemarks = `${pNote} ${dNote}`;
+    // Parse address and city from notes if direct fields are empty
+    let shippingAddr = order.shipping_address || '';
+    let shippingCity = order.shipping_city || '';
+    if (!shippingAddr || !shippingCity) {
+      const noteLines = (order.notes || '').split('\n');
+      noteLines.forEach((line: string) => {
+        const lower = line.toLowerCase().trim();
+        if (lower.startsWith('address:') && !shippingAddr) {
+          shippingAddr = line.substring('address:'.length).trim();
         }
-      } else {
-        finalRemarks = pNote || dNote;
-      }
-    } else {
-      finalRemarks = dNote || pNote;
-    }
-
-    if (!finalRemarks) {
-      finalRemarks = 'Call before delivery';
+        if (lower.startsWith('city:') && !shippingCity) {
+          shippingCity = line.substring('city:'.length).trim();
+        }
+      });
     }
 
     // Resolve addresses from PostEx API
@@ -187,10 +178,10 @@ export async function POST(req: NextRequest) {
 
     // Build PostEx v3 create-order payload (matching Zaynahs postexApi.ts)
     const payload: Record<string, any> = {
-      cityName: order.shipping_city || 'Karachi',
+      cityName: shippingCity || 'Karachi',
       customerName,
       customerPhone,
-      deliveryAddress: order.shipping_address || 'N/A',
+      deliveryAddress: shippingAddr || 'No address provided',
       invoiceDivision: 1,
       invoicePayment: totalAmount,
       items: finalItems,

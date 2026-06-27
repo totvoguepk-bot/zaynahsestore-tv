@@ -90,14 +90,9 @@ export default function PostExFulfillmentModal({ order, settings, onClose, onSuc
 
         setResult({ success: true, trackingNumber: tn, trackingUrl: tu, waLink: data.waLink || '' });
 
-        // Auto-download label if setting enabled
+        // Open printable label in new tab if setting enabled
         if (settings.postex_auto_download_label && tn) {
-          const a = document.createElement('a');
-          a.href = `/api/courier/postex/labels?cns=${tn}`;
-          a.download = 'postex-labels.pdf';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          window.open(`/api/courier/postex/labels?cns=${tn}`, '_blank', 'noopener,noreferrer');
         }
 
         setTimeout(() => {

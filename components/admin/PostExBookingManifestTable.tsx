@@ -32,6 +32,7 @@ interface EditableRow {
   remarks: string;
   invoiceDivision: string;
   paymentMethod: string;
+  productDetail: string;
 }
 
 interface Props {
@@ -160,11 +161,13 @@ function CitySelect({
 function PostExRowDetailsModal({
   order,
   row,
+  settings,
   onClose,
   onSave,
 }: {
   order: ManifestOrder;
   row: EditableRow;
+  settings: StoreSettings;
   onClose: () => void;
   onSave: (updates: Partial<EditableRow>) => void;
 }) {
@@ -175,12 +178,8 @@ function PostExRowDetailsModal({
     remarks: row.remarks,
     invoiceDivision: row.invoiceDivision,
     paymentMethod: row.paymentMethod,
+    productDetail: row.productDetail,
   });
-
-  const firstItem = order.items?.[0];
-  const productLine = firstItem
-    ? `${firstItem.quantity || 1} x ${firstItem.name || 'Product'}`
-    : 'No products';
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -257,9 +256,12 @@ function PostExRowDetailsModal({
 
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Products</label>
-            <div className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3.5 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
-              {productLine}
-            </div>
+            <input
+              type="text"
+              value={form.productDetail}
+              onChange={(e) => setForm(f => ({ ...f, productDetail: e.target.value }))}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0f0f1b] px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white"
+            />
           </div>
 
           <div>
@@ -307,6 +309,24 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
       const guessedCity = o.shippingCity
         || cities.find(c => o.shippingAddress?.toUpperCase().includes(c))
         || '';
+
+      // Payment method from order notes
+      let paymentMethod = 'Cash on delivery';
+      const noteLines = (o.shippingAddress || '').split('\n');
+      noteLines.forEach(line => {
+        const lower = line.toLowerCase().trim();
+        if (lower.startsWith('payment method:')) {
+          const pm = line.substring('payment method:'.length).trim();
+          if (pm) paymentMethod = pm;
+        }
+      });
+
+      // Pieces: auto from items if setting enabled, else default
+      const autoPieces = settings.postex_pieces_check === '1';
+      const piecesCount = autoPieces
+        ? (o.items?.length || 1).toString()
+        : (settings.postex_default_items || '1');
+
       initial[o.id] = {
         selected: true,
         name: o.customerName || '',
@@ -314,18 +334,19 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
         address: o.shippingAddress || '',
         city: guessedCity,
         cod: o.total?.toString() || '0',
-        kg: '0.5',
-        shipmentType: 'Normal',
+        kg: settings.postex_default_weight || '0.5',
+        shipmentType: settings.postex_order_type || 'Normal',
         fragile: 'No',
-        pieces: '1',
-        remarks: '',
+        pieces: piecesCount,
+        remarks: settings.postex_default_remarks || '',
         invoiceDivision: '1',
-        paymentMethod: 'Cash on delivery',
+        paymentMethod,
+        productDetail: settings.postex_default_product || '',
       };
     });
     setRows(initial);
     setSelectAll(true);
-  }, [orders, cities]);
+  }, [orders, cities, settings]);
 
   const updateRow = useCallback((id: string, field: keyof EditableRow, value: any) => {
     setRows(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
@@ -362,6 +383,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
             packetCount: row.pieces,
             remarks: [row.remarks, `COD: ${row.cod}`, row.address, row.city].filter(Boolean).join(' | '),
             orderType: row.shipmentType,
+            productDetail: row.productDetail,
           }),
         });
         const data = await res.json();
@@ -379,22 +401,9 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
     }
     setUploading(false);
 
-    // Auto-download labels if setting enabled and at least one succeeded
+    // Download real PDF labels from PostEx if setting enabled and at least one succeeded
     if (settings.postex_auto_download_label && cns.length > 0) {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = `/api/courier/postex/labels?cns=${cns.join(',')}`;
-      document.body.appendChild(iframe);
-      
-      iframe.onload = () => {
-        try {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        } catch (e) {
-          console.error('Auto-print blocked, opening in new tab', e);
-          window.open(iframe.src, '_blank');
-        }
-      };
+      window.open(`/api/courier/postex/labels?cns=${cns.join(',')}`, '_blank');
     }
   };
 
@@ -758,6 +767,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
         <PostExRowDetailsModal
           order={detailOrder}
           row={activeDetail}
+          settings={settings}
           onClose={() => setDetailRowId(null)}
           onSave={(updates) => handleDetailSave(detailRowId, updates)}
         />

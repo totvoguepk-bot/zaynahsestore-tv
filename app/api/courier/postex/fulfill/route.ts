@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { cleanWhatsAppPhone, formatPrice } from '@/lib/utils/whatsapp';
 import { sendEmail } from '@/lib/email/sendEmail';
+import { renderOrderItemsTable } from '@/lib/email/variables';
 
 const POSTEX_BASE = 'https://api.postex.pk/services/integration/api';
 const POSTEX_STAGING = 'https://staging-api.postex.pk/services/integration/api';
@@ -46,7 +48,7 @@ async function getMerchantAddresses(token: string, baseUrl: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, weight, packetCount, remarks } = await req.json();
+    const { orderId, weight, packetCount, remarks, productDetail } = await req.json();
 
     if (!orderId) {
       return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
@@ -79,12 +81,10 @@ export async function POST(req: NextRequest) {
     const customerEmail = order.customer_email || order.customers?.email || '';
     const orderItems = Array.isArray(order.items) ? order.items : [];
     const firstItem = orderItems[0] || {};
-    const itemName = firstItem.name || 'Order items';
+    const itemName = firstItem.name || s.postex_default_product || '';
     const itemSku = firstItem.sku || '';
 
-    const deliveryDetail = (s.postex_product_check || '1') === '1'
-      ? itemName
-      : (s.postex_default_product || 'Kids Clothes');
+    const deliveryDetail = productDetail || s.postex_default_product || '';
 
     let finalWeight = parseFloat(String(weight)) || parseFloat(s.postex_default_weight) || 0.5;
     if ((s.postex_weight_check || '1') !== '1') {
@@ -104,28 +104,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let finalRemarks = remarks || '';
-    const pNote = (remarks || '').trim();
-    const dNote = (s.postex_default_remarks || '').trim();
+    // Remarks — strictly the Default Delivery Note from settings, no concatenation
+    const finalRemarks = s.postex_default_remarks || 'Call before delivery';
 
-    if ((s.postex_notes_check || '1') === '1') {
-      if (pNote && dNote) {
-        if (pNote.toLowerCase().includes(dNote.toLowerCase())) {
-          finalRemarks = pNote;
-        } else if (dNote.toLowerCase().includes(pNote.toLowerCase())) {
-          finalRemarks = dNote;
-        } else {
-          finalRemarks = `${pNote} ${dNote}`;
+    // Parse address and city from notes if direct fields are empty
+    let shippingAddr = order.shipping_address || '';
+    let shippingCity = order.shipping_city || '';
+    if (!shippingAddr || !shippingCity) {
+      const noteLines = (order.notes || '').split('\n');
+      noteLines.forEach((line: string) => {
+        const lower = line.toLowerCase().trim();
+        if (lower.startsWith('address:') && !shippingAddr) {
+          shippingAddr = line.substring('address:'.length).trim();
         }
-      } else {
-        finalRemarks = pNote || dNote;
-      }
-    } else {
-      finalRemarks = dNote || pNote;
-    }
-
-    if (!finalRemarks) {
-      finalRemarks = 'Call before delivery';
+        if (lower.startsWith('city:') && !shippingCity) {
+          shippingCity = line.substring('city:'.length).trim();
+        }
+      });
     }
 
     let pickupCode = s.postex_pickup_address || '';
@@ -172,10 +167,10 @@ export async function POST(req: NextRequest) {
     }
 
     const payload: Record<string, any> = {
-      cityName: order.shipping_city || 'Karachi',
+      cityName: shippingCity || 'Karachi',
       customerName,
       customerPhone,
-      deliveryAddress: order.shipping_address || 'N/A',
+      deliveryAddress: shippingAddr || 'No address provided',
       invoiceDivision: 1,
       invoicePayment: totalAmount,
       items: finalItems,
@@ -261,29 +256,90 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', orderId);
 
-    // ── Email Notification (Courier Link + CN) ────────────────────────────
+    // ── Email Notification (Rich product details, tracking, carrier info) ──
     const storeName = s.store_name || 'Zaynahs E-Store';
     const storeUrl = s.store_url || '';
+    const currencySymbol = s.currency_symbol || 'Rs.';
+
+    const items = Array.isArray(order.items) ? order.items : [];
+    const orderItemsHtml = renderOrderItemsTable(items, currencySymbol);
+    const orderTotal = formatPrice(parseFloat(order.total) || 0, currencySymbol);
+
+    // Shipping address from order notes
+    let shippingAddrStr = '';
+    let shippingCityStr = '';
+    (order.notes || '').split('\n').forEach((line: string) => {
+      const l = line.toLowerCase().trim();
+      if (l.startsWith('address:')) shippingAddrStr = line.substring('address:'.length).trim();
+      if (l.startsWith('city:')) shippingCityStr = line.substring('city:'.length).trim();
+    });
+
+    const customerAddress = shippingAddrStr || order.shipping_address || '';
+    const customerCity = shippingCityStr || order.shipping_city || '';
+    const customerPhoneStr = order.customer_phone || order.customers?.phone || '';
 
     const emailSubject = `Your order has been shipped via PostEx — Tracking: ${trackingNumber}`;
     const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #1a1a2e; font-size: 24px;">${storeName}</h1>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f4f4f6;">
+        <div style="background: #1a1a2e; border-radius: 12px 12px 0 0; padding: 24px; text-align: center;">
+          <h1 style="color: #fff; font-size: 22px; margin: 0;">${storeName}</h1>
         </div>
-        <div style="background: #f9f9f9; border-radius: 12px; padding: 24px; border: 1px solid #e5e5e5;">
+        <div style="background: #fff; padding: 32px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
           <h2 style="color: #1a1a2e; font-size: 18px; margin-top: 0;">Your order has been dispatched!</h2>
           <p style="color: #555; line-height: 1.6;">Hi ${customerName},</p>
-          <p style="color: #555; line-height: 1.6;">Your order (${order.order_number || orderId.slice(0, 8)}) has been handed over to <strong>PostEx Logistics</strong> and is on its way.</p>
-          <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center; border: 1px solid #e5e5e5;">
-            <p style="margin: 0 0 8px; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Tracking Consignment Number</p>
-            <p style="margin: 0 0 16px; font-size: 22px; font-weight: bold; color: #1a1a2e; letter-spacing: 2px;">${trackingNumber}</p>
-            <a href="${trackingUrl}" target="_blank" style="display: inline-block; background: #e94560; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 14px;">Track Your Parcel →</a>
+          <p style="color: #555; line-height: 1.6;">
+            Your order <strong>#${order.order_number || orderId.slice(0, 8)}</strong> has been handed over to
+            <strong>PostEx Logistics</strong> and is on its way. Please allow <strong>2-5 working days</strong>
+            for delivery. Keep your phone number active for the rider to reach you.
+          </p>
+
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+            <p style="margin: 0 0 6px; color: #166534; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Tracking Consignment Number (CN)</p>
+            <p style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #1a1a2e; letter-spacing: 3px;">${trackingNumber}</p>
+            <a href="${trackingUrl}" target="_blank" style="display: inline-block; background: #e94560; color: #fff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 14px;">Track Your Parcel →</a>
           </div>
-          ${finalRemarks ? `<p style="color: #555; line-height: 1.6;"><strong>Note:</strong> ${finalRemarks}</p>` : ''}
+
+          ${finalRemarks ? `<p style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 14px; color: #9a3412; font-size: 13px; line-height: 1.5;"><strong>Note:</strong> ${finalRemarks}</p>` : ''}
+
+          ${orderItemsHtml ? `
+            <div style="margin-top: 20px;">
+              <h3 style="color: #1a1a2e; font-size: 15px; margin-bottom: 8px;">Order Summary</h3>
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <thead>
+                  <tr style="background: #f9fafb;">
+                    <th style="text-align: left; padding: 8px; font-size: 11px; color: #6b7280; text-transform: uppercase;">Item</th>
+                    <th style="text-align: center; padding: 8px; font-size: 11px; color: #6b7280; text-transform: uppercase;">Qty</th>
+                    <th style="text-align: right; padding: 8px; font-size: 11px; color: #6b7280; text-transform: uppercase;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${orderItemsHtml}
+                </tbody>
+              </table>
+              <div style="text-align: right; margin-top: 8px; font-size: 16px; font-weight: 700; color: #1a1a2e;">
+                Total: ${orderTotal}
+              </div>
+            </div>
+          ` : ''}
+
+          <div style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <h3 style="color: #1a1a2e; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Shipping Address</h3>
+            <p style="margin: 0; color: #555; font-size: 13px; line-height: 1.6;">
+              ${customerName}<br/>
+              ${customerAddress ? `${customerAddress}<br/>` : ''}
+              ${customerCity || ''}
+            </p>
+            <p style="margin: 4px 0 0; color: #555; font-size: 13px;"><strong>Phone:</strong> ${customerPhoneStr}</p>
+          </div>
+
+          <div style="margin-top: 16px; padding: 12px; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; font-size: 12px; color: #92400e; line-height: 1.5;">
+            <strong>⚠️ Important:</strong> Orders take <strong>2-5 working days</strong> for delivery. Please ensure your
+            phone number remains active and switched on. The rider may call you before delivery.
+          </div>
         </div>
-        <div style="text-align: center; margin-top: 24px; color: #999; font-size: 12px;">
-          <p>${storeName} | ${storeUrl ? `<a href="${storeUrl}" style="color: #e94560;">${storeUrl}</a>` : ''}</p>
+        <div style="text-align: center; padding: 16px; color: #999; font-size: 11px;">
+          <p style="margin: 0;">${storeName}${storeUrl ? ` | <a href="${storeUrl}" style="color: #e94560; text-decoration: none;">${storeUrl}</a>` : ''}</p>
+          <p style="margin: 4px 0 0;">This is an automated dispatch notification. Please do not reply directly.</p>
         </div>
       </div>
     `;
@@ -306,17 +362,35 @@ export async function POST(req: NextRequest) {
           to: adminEmail,
           subject: `[${storeName}] Order dispatched — ${trackingNumber}`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #1a1a2e;">Order Fulfilled via PostEx</h2>
-              <p><strong>Order:</strong> ${order.order_number || orderId}</p>
-              <p><strong>Customer:</strong> ${customerName} (${customerPhone})</p>
-              <p><strong>Tracking CN:</strong> ${trackingNumber}</p>
-              <p><strong>Tracking Link:</strong> <a href="${trackingUrl}">${trackingUrl}</a></p>
-              <p><strong>Courier:</strong> PostEx Logistics</p>
-              ${customerEmail ? `<p><strong>Customer Email:</strong> ${customerEmail}</p>` : ''}
-              <p><strong>COD Amount:</strong> PKR ${totalAmount}</p>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;" />
-              <p style="color: #888;">This is an automated fulfillment notification from ${storeName}.</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f4f4f6;">
+              <div style="background: #1a1a2e; border-radius: 12px 12px 0 0; padding: 20px; text-align: center;">
+                <h1 style="color: #fff; font-size: 18px; margin: 0;">${storeName}</h1>
+              </div>
+              <div style="background: #fff; padding: 24px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
+                <h2 style="color: #1a1a2e; font-size: 16px; margin-top: 0;">Order Fulfilled via PostEx</h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #555;">
+                  <tr><td style="padding: 4px 0;"><strong>Order:</strong></td><td style="padding: 4px 0;">${order.order_number || orderId}</td></tr>
+                  <tr><td style="padding: 4px 0;"><strong>Customer:</strong></td><td style="padding: 4px 0;">${customerName} (${customerPhone})</td></tr>
+                  <tr><td style="padding: 4px 0;"><strong>Tracking CN:</strong></td><td style="padding: 4px 0;">${trackingNumber}</td></tr>
+                  <tr><td style="padding: 4px 0;"><strong>Tracking Link:</strong></td><td style="padding: 4px 0;"><a href="${trackingUrl}" style="color: #e94560;">${trackingUrl}</a></td></tr>
+                  <tr><td style="padding: 4px 0;"><strong>Courier:</strong></td><td style="padding: 4px 0;">PostEx Logistics</td></tr>
+                  ${customerEmail ? `<tr><td style="padding: 4px 0;"><strong>Customer Email:</strong></td><td style="padding: 4px 0;">${customerEmail}</td></tr>` : ''}
+                  <tr><td style="padding: 4px 0;"><strong>COD Amount:</strong></td><td style="padding: 4px 0;">${currencySymbol} ${totalAmount}</td></tr>
+                </table>
+                ${orderItemsHtml ? `
+                  <h3 style="color: #1a1a2e; font-size: 14px; margin: 16px 0 8px;">Items</h3>
+                  <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; font-size: 12px;">
+                    <thead><tr style="background: #f9fafb;"><th style="text-align: left; padding: 6px;">Item</th><th style="text-align: center; padding: 6px;">Qty</th><th style="text-align: right; padding: 6px;">Total</th></tr></thead>
+                    <tbody>${orderItemsHtml}</tbody>
+                  </table>
+                ` : ''}
+                <div style="margin-top: 12px; padding: 10px; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; font-size: 11px; color: #92400e;">
+                  Delivery window: 2-5 working days. Keep customer phone active.
+                </div>
+              </div>
+              <div style="text-align: center; padding: 12px; color: #999; font-size: 10px;">
+                Automated fulfillment notification from ${storeName}.
+              </div>
             </div>
           `,
         });

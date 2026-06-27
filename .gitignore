@@ -46,7 +46,7 @@ next-env.d.ts
 
 # scratch / temp
 scratch/
-postex/
+/postex/
 gemini.md
 online_viewer_net*.html
 "Zaynahs Courier Manger"

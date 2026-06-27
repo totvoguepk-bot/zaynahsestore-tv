@@ -341,6 +341,48 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     }
   };
 
+  const handleCancelShipment = async () => {
+    const tn = order.trackingNumber;
+    if (!tn) return;
+    if (!confirm(`Are you sure you want to cancel shipment ${tn} on PostEx and revert order to Pending?`)) return;
+    try {
+      setIsUpdating(true);
+      const res = await fetch('/api/courier/postex/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const cancelLog: StatusLogItem = {
+          id: Math.random().toString(36).substring(7),
+          type: 'status_change',
+          message: `Shipment cancelled with PostEx`,
+          notes: `Tracking ${tn} cancelled, order reverted to Pending`,
+          createdAt: new Date().toISOString(),
+        };
+        const updatedLogs = [...(order.statusLogs || []), cancelLog];
+        const updated = await updateOrderDetails(order.id, {
+          status: 'pending',
+          trackingNumber: '',
+          courierName: '',
+          trackingUrl: '',
+          statusLogs: updatedLogs,
+        });
+        setOrder(updated);
+        toast.success(`Shipment cancelled: ${data.message}`);
+        router.refresh();
+      } else {
+        toast.error(data.error || 'Failed to cancel shipment');
+      }
+    } catch (err) {
+      toast.error('Failed to cancel shipment');
+    } finally {
+      setIsUpdating(false);
+      setIsDropdownOpen(false);
+    }
+  };
+
   const handleSaveStaffNote = async () => {
     if (!staffNoteInput.trim()) return;
     try {
@@ -552,6 +594,19 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   <button onClick={() => handleStatusChange('delivered')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 dark:hover:bg-white/5 text-emerald-600">Mark as Delivered</button>
                   <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 dark:hover:bg-white/5 text-red-600">Mark as Cancelled</button>
 
+                  {order.trackingNumber && (
+                    <>
+                      <div className="border-t border-gray-100 dark:border-gray-800/60 my-1" />
+                      <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Courier</div>
+                      <button
+                        onClick={handleCancelShipment}
+                        disabled={isUpdating}
+                        className="w-full text-left px-4 py-2 text-[13.5px] font-medium text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors flex items-center gap-2"
+                      >
+                        Cancel Shipment
+                      </button>
+                    </>
+                  )}
                   <div className="border-t border-gray-100 dark:border-gray-800/60 my-1" />
                   <button
                     onClick={() => {
