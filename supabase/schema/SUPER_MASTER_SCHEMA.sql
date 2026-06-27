@@ -1014,6 +1014,14 @@ CREATE TABLE IF NOT EXISTS seo_meta (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_seo_meta_entity ON seo_meta (entity_type, entity_id);
 
+ALTER TABLE seo_meta ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read seo_meta" ON seo_meta;
+CREATE POLICY "Public read seo_meta" ON seo_meta FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin all seo_meta" ON seo_meta;
+CREATE POLICY "Admin all seo_meta" ON seo_meta FOR ALL USING (auth.role() = 'authenticated');
+
 CREATE TABLE IF NOT EXISTS media_library (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   original_filename TEXT,

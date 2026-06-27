@@ -80,11 +80,13 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - `settings` — settings update
    - Use `unstable_cache` with these tags for DB-backed caching
 
-6. **ALWAYS update SUPER_MASTER_SCHEMA.sql for EVERY migration — no exceptions.**
-   - Every schema change (columns, tables, indexes, policies, triggers, functions, RLS, storage rules, auth config) must be reflected in `supabase/schema/SUPER_MASTER_SCHEMA.sql`
+6. **HARD RULE: SUPER_MASTER_SCHEMA.sql MUST always match ALL migrations — zero exceptions.**
+   - Every schema change (columns, tables, indexes, policies, triggers, functions, RLS, storage rules, auth config, seed data) must be reflected in `supabase/schema/SUPER_MASTER_SCHEMA.sql`
    - **Update BEFORE writing the migration** — master schema is the source of truth, migration follows it
-   - This applies to: `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`, `CREATE INDEX`, `DROP INDEX`, `CREATE POLICY`, `DROP POLICY`, `CREATE FUNCTION`, `CREATE TRIGGER`, storage bucket config, auth settings — absolutely everything
+   - This applies to: `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`, `CREATE INDEX`, `DROP INDEX`, `CREATE POLICY`, `DROP POLICY`, `CREATE FUNCTION`, `CREATE TRIGGER`, storage bucket config, auth settings, seed data (`INSERT`) — absolutely everything
    - Keep the schema version (top comment) and "Updated" date header current
+   - **After writing any migration, run `node scripts/check-master-schema.mjs` to verify — it MUST pass with 0 issues**
+   - **If a migration is found that is NOT in master schema, the agent MUST fix master schema immediately before proceeding**
 
 7. **All Supabase admin actions via Management API only.**
    - Never use Supabase CLI (`supabase db push`, `supabase migration` etc.)
