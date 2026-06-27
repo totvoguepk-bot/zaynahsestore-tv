@@ -48,7 +48,7 @@ async function getMerchantAddresses(token: string, baseUrl: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, weight, packetCount, remarks, productDetail } = await req.json();
+    const { orderId, weight, packetCount, remarks, productDetail, customerName: reqName, customerPhone: reqPhone, deliveryAddress: reqAddress, cityName: reqCity, total: reqTotal, orderType: reqOrderType } = await req.json();
 
     if (!orderId) {
       return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
     const baseUrl = s.postex_mode === 'production' ? POSTEX_BASE : POSTEX_STAGING;
     const token = s.postex_api_token;
 
-    const customerName = order.customer_name || order.customers?.name || '';
-    const customerPhone = cleanPhone(order.customer_phone || order.customers?.phone || '');
+    const customerName = reqName || order.customer_name || order.customers?.name || '';
+    const customerPhone = cleanPhone(reqPhone || order.customer_phone || order.customers?.phone || '');
     const customerEmail = order.customer_email || order.customers?.email || '';
     const orderItems = Array.isArray(order.items) ? order.items : [];
     const firstItem = orderItems[0] || {};
@@ -96,20 +96,20 @@ export async function POST(req: NextRequest) {
       finalItems = parseInt(s.postex_default_items) || 1;
     }
 
-    let totalAmount = parseFloat(order.total) || 0;
-    if ((s.postex_cod_check || '0') === '1') {
+    let totalAmount = reqTotal !== undefined ? parseFloat(String(reqTotal)) : (parseFloat(order.total) || 0);
+    if (totalAmount && reqTotal === undefined && (s.postex_cod_check || '0') === '1') {
       const searchText = `${remarks || ''} ${itemName} ${order.notes || ''}`.toLowerCase();
       if (searchText.includes('paid') || searchText.includes('prepaid') || searchText.includes('non-cod') || searchText.includes('non cod')) {
         totalAmount = 0;
       }
     }
 
-    // Remarks — strictly the Default Delivery Note from settings, no concatenation
-    const finalRemarks = s.postex_default_remarks || 'Call before delivery';
+    // Remarks — use from request if provided, otherwise settings default
+    const finalRemarks = (remarks || '').trim() || s.postex_default_remarks || 'Call before delivery';
 
-    // Parse address, apt/suite, and city from notes if direct fields are empty
-    let shippingAddr = order.shipping_address || '';
-    let shippingCity = order.shipping_city || '';
+    // Parse address, apt/suite, and city — use request overrides if provided
+    let shippingAddr = reqAddress || order.shipping_address || '';
+    let shippingCity = (reqCity || order.shipping_city || '').split(',')[0].trim();
     if (!shippingAddr || !shippingCity) {
       const noteLines = (order.notes || '').split('\n');
       let aptSuite = '';
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
       items: finalItems,
       orderDetail,
       orderRefNumber: order.order_number || order.id,
-      orderType: s.postex_order_type || 'Normal',
+      orderType: reqOrderType || s.postex_order_type || 'Normal',
       transactionNotes: finalRemarks,
       pickupAddressCode: pickupCode,
       weight: finalWeight,
@@ -291,18 +291,8 @@ export async function POST(req: NextRequest) {
     const orderItemsHtml = renderOrderItemsTable(items, currencySymbol, storeUrl);
     const orderTotal = formatPrice(parseFloat(order.total) || 0, currencySymbol);
 
-    // Shipping address from order notes
-    let shippingAddrStr = '';
-    let shippingCityStr = '';
-    (order.notes || '').split('\n').forEach((line: string) => {
-      const l = line.toLowerCase().trim();
-      if (l.startsWith('address:')) shippingAddrStr = line.substring('address:'.length).trim();
-      if (l.startsWith('city:')) shippingCityStr = line.substring('city:'.length).trim();
-    });
-
-    const customerAddress = shippingAddrStr || order.shipping_address || '';
-    const customerCity = shippingCityStr || order.shipping_city || '';
-    const customerPhoneStr = order.customer_phone || order.customers?.phone || '';
+    const customerAddress = shippingAddr || '';
+    const customerCity = shippingCity || '';
 
     const emailSubject = `Your order has been shipped via PostEx — Tracking: ${trackingNumber}`;
     const emailHtml = `
@@ -355,7 +345,7 @@ export async function POST(req: NextRequest) {
               ${customerAddress ? `${customerAddress}<br/>` : ''}
               ${customerCity || ''}
             </p>
-            <p style="margin: 4px 0 0; color: #555; font-size: 13px;"><strong>Phone:</strong> ${customerPhoneStr}</p>
+            <p style="margin: 4px 0 0; color: #555; font-size: 13px;"><strong>Phone:</strong> ${customerPhone}</p>
           </div>
 
           <div style="margin-top: 16px; padding: 12px; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; font-size: 12px; color: #92400e; line-height: 1.5;">
