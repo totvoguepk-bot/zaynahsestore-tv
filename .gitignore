@@ -44,3 +44,10 @@ next-env.d.ts
 # archives
 *.zip
 
+# scratch / temp
+scratch/
+postex/
+gemini.md
+online_viewer_net*.html
+"Zaynahs Courier Manger"
+
