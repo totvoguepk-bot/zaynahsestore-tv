@@ -107,20 +107,46 @@ export async function POST(req: NextRequest) {
     // Remarks — strictly the Default Delivery Note from settings, no concatenation
     const finalRemarks = s.postex_default_remarks || 'Call before delivery';
 
-    // Parse address and city from notes if direct fields are empty
+    // Parse address, apt/suite, and city from notes if direct fields are empty
     let shippingAddr = order.shipping_address || '';
     let shippingCity = order.shipping_city || '';
     if (!shippingAddr || !shippingCity) {
       const noteLines = (order.notes || '').split('\n');
+      let aptSuite = '';
       noteLines.forEach((line: string) => {
         const lower = line.toLowerCase().trim();
         if (lower.startsWith('address:') && !shippingAddr) {
           shippingAddr = line.substring('address:'.length).trim();
         }
+        if (lower.startsWith('apt/suite:') || lower.startsWith('apt:')) {
+          aptSuite = line.substring(line.indexOf(':') + 1).trim();
+        }
         if (lower.startsWith('city:') && !shippingCity) {
           shippingCity = line.substring('city:'.length).trim();
         }
       });
+      // If no "Address:" line found, treat first non-labeled line as address
+      if (!shippingAddr) {
+        for (const line of noteLines) {
+          const t = line.trim();
+          if (!t) continue;
+          const l = t.toLowerCase();
+          if (l.startsWith('apt/suite:') || l.startsWith('apt:') ||
+              l.startsWith('city:') || l.startsWith('phone:') ||
+              l.startsWith('payment method:') || l.startsWith('postal:') ||
+              l.startsWith('address:')) {
+            continue;
+          }
+          shippingAddr = t;
+          break;
+        }
+      }
+      // Concatenate address + aptSuite
+      if (aptSuite) {
+        shippingAddr = [shippingAddr, aptSuite].filter(Boolean).join(', ');
+      }
+      // Sanitize city — strip country/extra text after comma
+      shippingCity = (shippingCity || '').split(',')[0].trim();
     }
 
     let pickupCode = s.postex_pickup_address || '';

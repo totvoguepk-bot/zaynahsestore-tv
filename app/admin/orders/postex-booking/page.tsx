@@ -30,9 +30,10 @@ export default async function PostExBookingPage({
 
   const orders = (ordersRaw ?? []).map(o => {
     const notes = o.notes || '';
+    const lines = notes.split('\n');
     let address = '', aptSuite = '', city = '';
 
-    (notes || '').split('\n').forEach((line: string) => {
+    lines.forEach((line: string) => {
       const lower = line.toLowerCase().trim();
       if (lower.startsWith('address:')) {
         address = line.substring('address:'.length).trim();
@@ -43,6 +44,22 @@ export default async function PostExBookingPage({
       }
     });
 
+    if (!address) {
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) continue;
+        const l = t.toLowerCase();
+        if (l.startsWith('apt/suite:') || l.startsWith('apt:') ||
+            l.startsWith('city:') || l.startsWith('phone:') ||
+            l.startsWith('payment method:') || l.startsWith('postal:')) {
+          continue;
+        }
+        address = t;
+        break;
+      }
+    }
+
+    const cleanCity = city.split(',')[0].trim();
     const fullAddress = [address, aptSuite].filter(Boolean).join(', ');
 
     return {
@@ -51,7 +68,7 @@ export default async function PostExBookingPage({
       customerName: o.customer_name || '',
       customerPhone: o.customer_phone || '',
       shippingAddress: fullAddress,
-      shippingCity: city,
+      shippingCity: cleanCity,
       notes: notes,
       total: parseFloat(o.total?.toString() || '0'),
       items: (o.items || []) as any[],

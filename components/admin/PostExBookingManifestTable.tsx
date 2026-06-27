@@ -307,7 +307,8 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
   useEffect(() => {
     const initial: Record<string, EditableRow> = {};
     orders.forEach(o => {
-      const guessedCity = o.shippingCity
+      const cleanCity = (o.shippingCity || '').split(',')[0].trim();
+      const guessedCity = cleanCity
         || cities.find(c => o.shippingAddress?.toUpperCase().includes(c))
         || '';
 
