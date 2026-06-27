@@ -83,7 +83,10 @@ export async function POST(request: Request) {
     }
 
     // Check if keys are configured
-    const keysRaw = settings.content_keys || '';
+    const keysRaw =
+      settings.ai_model_credentials?.content?.[settings.content_provider] ||
+      settings.content_keys ||
+      '';
     const keys = keysRaw
       .split('\n')
       .map((k: string) => k.trim())

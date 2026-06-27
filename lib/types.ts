@@ -372,6 +372,14 @@ export interface StoreSettings {
 
   // AI settings
   ai_enabled?: boolean;
+  ai_model_credentials?: Record<string, Record<string, string>>;
+  ai_persona_config?: {
+    tone: string;
+    language: string;
+    customInstructions: string;
+    targetAudiences: string[];
+    productTypes: string[];
+  };
   content_provider?: string;
   content_model?: string;
   content_keys?: string;

@@ -235,6 +235,8 @@ interface SettingsRow {
 
   // AI settings
   ai_enabled?: boolean | null;
+  ai_model_credentials?: any | null;
+  ai_persona_config?: any | null;
   content_provider?: string | null;
   content_model?: string | null;
   content_keys?: string | null;
@@ -516,11 +518,13 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
 
   // AI settings
   ai_enabled: row.ai_enabled ?? false,
+  ai_model_credentials: typeof row.ai_model_credentials === 'string' ? JSON.parse(row.ai_model_credentials) : (row.ai_model_credentials ?? {}),
+  ai_persona_config: typeof row.ai_persona_config === 'string' ? JSON.parse(row.ai_persona_config) : (row.ai_persona_config ?? {}),
   content_provider: row.content_provider ?? 'groq',
   content_model: row.content_model ?? 'llama-3.3-70b-versatile',
   content_keys: row.content_keys ?? '',
   vision_provider: row.vision_provider ?? 'gemini',
-  vision_model: row.vision_model ?? 'gemini-2.0-flash',
+  vision_model: row.vision_model ?? 'gemini-2.5-flash',
   vision_keys: row.vision_keys ?? '',
   ai_tone: row.ai_tone ?? 'Professional',
   ai_language: row.ai_language ?? 'English',
@@ -873,6 +877,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
 
     // AI settings
     if (settings.ai_enabled !== undefined) updatePayload.ai_enabled = settings.ai_enabled;
+    if (settings.ai_model_credentials !== undefined) updatePayload.ai_model_credentials = settings.ai_model_credentials;
+    if (settings.ai_persona_config !== undefined) updatePayload.ai_persona_config = settings.ai_persona_config;
     if (settings.content_provider !== undefined) updatePayload.content_provider = settings.content_provider;
     if (settings.content_model !== undefined) updatePayload.content_model = settings.content_model;
     if (settings.content_keys !== undefined) updatePayload.content_keys = settings.content_keys;

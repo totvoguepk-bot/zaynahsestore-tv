@@ -4,10 +4,11 @@ interface AISettings {
   ai_enabled: boolean;
   content_provider: string;
   content_model: string;
-  content_keys: string;
+  ai_model_credentials?: Record<string, Record<string, string>>;
+  content_keys?: string;
   vision_provider: string;
   vision_model: string;
-  vision_keys: string;
+  vision_keys?: string;
   brand_name: string;
   store_type: string;
   target_market: string;
@@ -76,7 +77,11 @@ export async function callAI(
 
   const provider = isVision ? settings.vision_provider : settings.content_provider;
   const model = isVision ? settings.vision_model : settings.content_model;
-  const keysRaw = isVision ? settings.vision_keys : settings.content_keys;
+  const section = isVision ? 'vision' : 'content';
+  const keysRaw =
+    settings.ai_model_credentials?.[section]?.[provider] ||
+    (isVision ? settings.vision_keys : settings.content_keys) ||
+    '';
 
   const keys = keysRaw
     .split('\n')
@@ -103,7 +108,10 @@ export async function callAI(
     }
   }
 
-  throw new Error(`All ${provider} API keys exhausted`);
+  const freeHint = isVision
+    ? ' Try switching to: Gemini 2.5 Flash (1500 req/day free), Groq llama-4-scout (14400 req/day), or OpenRouter free models.'
+    : ' Try switching to: Groq llama-4-scout (fastest, 14400 req/day), Gemini 2.5 Flash, or Mistral mistral-small-2506.';
+  throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
 /**

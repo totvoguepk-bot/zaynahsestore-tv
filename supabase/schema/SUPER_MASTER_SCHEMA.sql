@@ -1,7 +1,7 @@
 -- ============================================================
 -- ZAYNAHS E-STORE — SUPER MASTER SCHEMA
--- Version: 2.2.0
--- Updated: 2026-06-27
+-- Version: 2.3.0
+-- Updated: 2026-06-28 (v2.3.0)
 -- ============================================================
 
 -- Enable UUID extension
@@ -492,11 +492,13 @@ CREATE TABLE IF NOT EXISTS store_settings (
 
   -- AI Settings
   ai_enabled BOOLEAN DEFAULT false,
+  ai_model_credentials JSONB DEFAULT '{}'::jsonb,
+  ai_persona_config JSONB DEFAULT '{}'::jsonb,
   content_provider TEXT DEFAULT 'groq',
   content_model TEXT DEFAULT 'llama-3.3-70b-versatile',
   content_keys TEXT DEFAULT '',
   vision_provider TEXT DEFAULT 'gemini',
-  vision_model TEXT DEFAULT 'gemini-2.0-flash',
+  vision_model TEXT DEFAULT 'gemini-2.5-flash',
   vision_keys TEXT DEFAULT '',
   ai_tone TEXT DEFAULT 'Professional',
   ai_language TEXT DEFAULT 'English',
@@ -1056,11 +1058,13 @@ CREATE POLICY "Admin all media_library" ON media_library FOR ALL USING (auth.rol
 CREATE TABLE IF NOT EXISTS ai_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   ai_enabled BOOLEAN DEFAULT false,
+  ai_model_credentials JSONB DEFAULT '{}'::jsonb,
+  ai_persona_config JSONB DEFAULT '{}'::jsonb,
   content_provider TEXT DEFAULT 'groq',
   content_model TEXT DEFAULT 'llama-3.3-70b-versatile',
   content_keys TEXT DEFAULT '',
   vision_provider TEXT DEFAULT 'gemini',
-  vision_model TEXT DEFAULT 'gemini-2.0-flash',
+  vision_model TEXT DEFAULT 'gemini-2.5-flash',
   vision_keys TEXT DEFAULT '',
   brand_name TEXT DEFAULT '',
   store_type TEXT DEFAULT 'General',
@@ -1092,7 +1096,7 @@ VALUES (
   'llama-3.3-70b-versatile',
   '',
   'gemini',
-  'gemini-2.0-flash',
+  'gemini-2.5-flash',
   '',
   'TotVogue.pk',
   'General',
@@ -1135,6 +1139,8 @@ BEGIN
   UPDATE ai_settings
   SET 
     ai_enabled = NEW.ai_enabled,
+    ai_model_credentials = NEW.ai_model_credentials,
+    ai_persona_config = NEW.ai_persona_config,
     content_provider = NEW.content_provider,
     content_model = NEW.content_model,
     content_keys = NEW.content_keys,
@@ -1180,6 +1186,8 @@ BEGIN
   UPDATE store_settings
   SET 
     ai_enabled = NEW.ai_enabled,
+    ai_model_credentials = NEW.ai_model_credentials,
+    ai_persona_config = NEW.ai_persona_config,
     content_provider = NEW.content_provider,
     content_model = NEW.content_model,
     content_keys = NEW.content_keys,
@@ -1310,6 +1318,55 @@ DROP POLICY IF EXISTS "Public read variant_presets" ON variant_presets;
 CREATE POLICY "Public read variant_presets" ON variant_presets
   FOR SELECT USING (true);
 
+
+-- ============================================================
+-- AI USAGE (Rate Limit Tracking)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.ai_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider TEXT NOT NULL,
+  date DATE NOT NULL,
+  req_count INTEGER DEFAULT 0,
+  token_count INTEGER DEFAULT 0,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(provider, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_provider_date ON public.ai_usage(provider, date);
+
+ALTER TABLE public.ai_usage ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role_all_ai_usage" ON public.ai_usage;
+CREATE POLICY "service_role_all_ai_usage"
+  ON public.ai_usage
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "authenticated_read_ai_usage" ON public.ai_usage;
+CREATE POLICY "authenticated_read_ai_usage"
+  ON public.ai_usage
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- RPC for atomic usage increment
+CREATE OR REPLACE FUNCTION public.increment_ai_usage(
+  p_provider TEXT,
+  p_date DATE,
+  p_tokens INTEGER DEFAULT 0
+) RETURNS VOID LANGUAGE plpgsql AS $$
+BEGIN
+  INSERT INTO public.ai_usage (provider, date, req_count, token_count)
+  VALUES (p_provider, p_date, 1, p_tokens)
+  ON CONFLICT (provider, date)
+  DO UPDATE SET
+    req_count = ai_usage.req_count + 1,
+    token_count = ai_usage.token_count + p_tokens,
+    updated_at = now();
+END;
+$$;
 
 -- ============================================================
 -- ABANDONED CARTS

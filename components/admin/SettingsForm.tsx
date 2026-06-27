@@ -295,17 +295,21 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [aiEnabled, setAiEnabled] = useState(initialSettings.ai_enabled ?? false);
   const [contentProvider, setContentProvider] = useState(initialSettings.content_provider || 'groq');
   const [contentModel, setContentModel] = useState(initialSettings.content_model || 'llama-3.3-70b-versatile');
-  const [contentKeys, setContentKeys] = useState(initialSettings.content_keys || '');
+  const [aiModelCredentials, setAiModelCredentials] = useState<Record<string, Record<string, string>>>(
+    initialSettings.ai_model_credentials || {}
+  );
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
-  const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.0-flash');
-  const [visionKeys, setVisionKeys] = useState(initialSettings.vision_keys || '');
-  const [aiTone, setAiTone] = useState(initialSettings.ai_tone || 'Professional');
-  const [aiLanguage, setAiLanguage] = useState(initialSettings.ai_language || 'English');
-  const [aiCustomInstructions, setAiCustomInstructions] = useState(initialSettings.ai_custom_instructions || '');
+  const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.5-flash');
+  const pConfig: { tone?: string; language?: string; customInstructions?: string; targetAudiences?: string[]; productTypes?: string[] } = initialSettings.ai_persona_config || {};
+  const [aiPersonaConfig, setAiPersonaConfig] = useState({
+    tone: pConfig.tone || 'Professional',
+    language: pConfig.language || 'English',
+    customInstructions: pConfig.customInstructions || '',
+    targetAudiences: Array.isArray(pConfig.targetAudiences) ? pConfig.targetAudiences : ['Kids'],
+    productTypes: Array.isArray(pConfig.productTypes) ? pConfig.productTypes : ['Clothes', 'Shoes'],
+  });
   const [autoContentSeo, setAutoContentSeo] = useState(initialSettings.auto_content_seo ?? true);
   const [autoMediaAi, setAutoMediaAi] = useState(initialSettings.auto_media_ai ?? true);
-  const [targetAudiences, setTargetAudiences] = useState(initialSettings.target_audiences || 'Kids');
-  const [productTypes, setProductTypes] = useState(initialSettings.product_types || 'Clothes, Shoes');
   const [categoryDefaultTemplate, setCategoryDefaultTemplate] = useState(initialSettings.category_default_template || '');
   const [productDefaultTemplate, setProductDefaultTemplate] = useState(initialSettings.product_default_template || '');
   const [categoryDescriptionPrompt, setCategoryDescriptionPrompt] = useState(initialSettings.category_description_prompt || '');
@@ -987,19 +991,19 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
 
         // AI settings
         ai_enabled: aiEnabled,
+        ai_model_credentials: aiModelCredentials,
+        ai_persona_config: aiPersonaConfig,
         content_provider: contentProvider.trim(),
         content_model: contentModel.trim(),
-        content_keys: contentKeys.trim(),
         vision_provider: visionProvider.trim(),
         vision_model: visionModel.trim(),
-        vision_keys: visionKeys.trim(),
-        ai_tone: aiTone.trim(),
-        ai_language: aiLanguage.trim(),
-        ai_custom_instructions: aiCustomInstructions.trim(),
+        ai_tone: aiPersonaConfig.tone,
+        ai_language: aiPersonaConfig.language,
+        ai_custom_instructions: aiPersonaConfig.customInstructions,
+        target_audiences: (aiPersonaConfig.targetAudiences || []).join(', '),
+        product_types: (aiPersonaConfig.productTypes || []).join(', '),
         auto_content_seo: autoContentSeo,
         auto_media_ai: autoMediaAi,
-        // Note: target_audiences, product_types
-        // are managed exclusively via /admin/seo/settings → ai_settings table directly.
         category_default_template: categoryDefaultTemplate.trim(),
         product_default_template: productDefaultTemplate.trim(),
         category_description_prompt: categoryDescriptionPrompt.trim(),
@@ -1874,28 +1878,18 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           setContentProvider={setContentProvider}
           contentModel={contentModel}
           setContentModel={setContentModel}
-          contentKeys={contentKeys}
-          setContentKeys={setContentKeys}
+          aiModelCredentials={aiModelCredentials}
+          setAiModelCredentials={setAiModelCredentials}
           visionProvider={visionProvider}
           setVisionProvider={setVisionProvider}
           visionModel={visionModel}
           setVisionModel={setVisionModel}
-          visionKeys={visionKeys}
-          setVisionKeys={setVisionKeys}
-          aiTone={aiTone}
-          setAiTone={setAiTone}
-          aiLanguage={aiLanguage}
-          setAiLanguage={setAiLanguage}
-          aiCustomInstructions={aiCustomInstructions}
-          setAiCustomInstructions={setAiCustomInstructions}
+          aiPersonaConfig={aiPersonaConfig}
+          setAiPersonaConfig={setAiPersonaConfig}
           autoContentSeo={autoContentSeo}
           setAutoContentSeo={setAutoContentSeo}
           autoMediaAi={autoMediaAi}
           setAutoMediaAi={setAutoMediaAi}
-          targetAudiences={targetAudiences}
-          setTargetAudiences={setTargetAudiences}
-          productTypes={productTypes}
-          setProductTypes={setProductTypes}
           categoryDefaultTemplate={categoryDefaultTemplate}
           setCategoryDefaultTemplate={setCategoryDefaultTemplate}
           productDefaultTemplate={productDefaultTemplate}

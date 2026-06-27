@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ExternalLink, Zap } from '@/components/common/Icons';
+import { ExternalLink, Zap, Loader2, ShieldCheck } from '@/components/common/Icons';
 
 interface AITabProps {
   aiEnabled: boolean;
@@ -10,28 +10,30 @@ interface AITabProps {
   setContentProvider: (val: string) => void;
   contentModel: string;
   setContentModel: (val: string) => void;
-  contentKeys: string;
-  setContentKeys: (val: string) => void;
+  aiModelCredentials: Record<string, Record<string, string>>;
+  setAiModelCredentials: (val: Record<string, Record<string, string>>) => void;
   visionProvider: string;
   setVisionProvider: (val: string) => void;
   visionModel: string;
   setVisionModel: (val: string) => void;
-  visionKeys: string;
-  setVisionKeys: (val: string) => void;
-  aiTone: string;
-  setAiTone: (val: string) => void;
-  aiLanguage: string;
-  setAiLanguage: (val: string) => void;
-  aiCustomInstructions: string;
-  setAiCustomInstructions: (val: string) => void;
+  aiPersonaConfig: {
+    tone: string;
+    language: string;
+    customInstructions: string;
+    targetAudiences: string[];
+    productTypes: string[];
+  };
+  setAiPersonaConfig: (val: {
+    tone: string;
+    language: string;
+    customInstructions: string;
+    targetAudiences: string[];
+    productTypes: string[];
+  }) => void;
   autoContentSeo: boolean;
   setAutoContentSeo: (val: boolean) => void;
   autoMediaAi: boolean;
   setAutoMediaAi: (val: boolean) => void;
-  targetAudiences: string;
-  setTargetAudiences: (val: string) => void;
-  productTypes: string;
-  setProductTypes: (val: string) => void;
   categoryDefaultTemplate: string;
   setCategoryDefaultTemplate: (val: string) => void;
   productDefaultTemplate: string;
@@ -59,37 +61,23 @@ const PROVIDERS = [
 const TEXT_MODELS: Record<string, string[]> = {
   // ── FREE PROVIDERS ──────────────────────────────────────────────
   groq: [
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
     'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
     'llama-3.1-70b-versatile',
-    'llama3-8b-8192',
-    'llama3-70b-8192',
-    'mixtral-8x7b-32768',
-    'gemma2-9b-it',
-    'gemma-7b-it',
-    'llama-3.3-70b-specdec',
-    'llama-3.2-1b-preview',
-    'llama-3.2-3b-preview',
-    'llama-3.2-11b-text-preview',
-    'llama-3.2-90b-text-preview',
+    'llama-3.1-8b-instant',
     'deepseek-r1-distill-llama-70b',
     'qwen-qwq-32b',
+    'llama3-70b-8192',
+    'llama3-8b-8192',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it',
     'mistral-saba-24b',
-    'llama-4-scout-17b-16e-instruct',
-    'llama-4-maverick-17b-128e-instruct',
-    'meta-llama/llama-4-maverick-17b-128e-instruct',
-    'playai-tts'
   ],
   gemini: [
-    'gemini-2.5-pro',
     'gemini-2.5-flash',
+    'gemini-2.5-pro',
     'gemini-2.5-flash-lite',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-2.0-pro-exp',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-8b',
-    'gemini-1.5-pro',
     'gemma-3-27b-it',
     'gemma-3-12b-it',
     'gemma-3-4b-it',
@@ -103,27 +91,10 @@ const TEXT_MODELS: Record<string, string[]> = {
     'llama3-8b-8k'
   ],
   mistral: [
-    'mistral-small-latest',
-    'mistral-small-2506',
-    'mistral-small-2503',
     'open-mistral-nemo',
-    'mistral-nemo-2407',
-    'ministral-3b-latest',
-    'ministral-8b-latest',
-    'mistral-large-latest',
-    'mistral-large-2411',
-    'mistral-large-2407',
-    'mistral-medium-latest',
-    'mistral-medium-2505',
-    'codestral-latest',
-    'codestral-2405',
-    'codestral-mamba-2407',
-    'mathstral-temp-id',
-    'magistral-small-2509',
+    'devstral-2512',
     'magistral-medium-2509',
-    'devstral-small-2505',
-    'pixtral-large-2411',
-    'pixtral-12b-2409'
+    'magistral-small-2509',
   ],
   cloudflare: [
     '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
@@ -167,27 +138,25 @@ const TEXT_MODELS: Record<string, string[]> = {
     'deepseek-ai/deepseek-coder-6.7b-instruct'
   ],
   openrouter: [
-    // Free
-    'google/gemma-3-27b-it:free',
-    'google/gemma-3-12b-it:free',
-    'google/gemma-3-4b-it:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
     'meta-llama/llama-4-maverick:free',
     'meta-llama/llama-4-scout:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'meta-llama/llama-3.1-8b-instruct:free',
-    'meta-llama/llama-3.2-3b-instruct:free',
     'deepseek/deepseek-r1:free',
     'deepseek/deepseek-chat:free',
     'deepseek/deepseek-v3-base:free',
-    'mistralai/mistral-7b-instruct:free',
-    'mistralai/mistral-nemo:free',
     'qwen/qwen3-235b-a22b:free',
     'qwen/qwen3-30b-a3b:free',
     'qwen/qwen3-8b:free',
-    'qwen/qwen2.5-vl-7b-instruct:free',
+    'google/gemma-3-27b-it:free',
+    'google/gemma-3-12b-it:free',
+    'google/gemma-3-4b-it:free',
     'microsoft/phi-4-reasoning-plus:free',
     'microsoft/phi-4-reasoning:free',
     'microsoft/phi-4-mini-reasoning:free',
+    'mistralai/mistral-7b-instruct:free',
+    'mistralai/mistral-nemo:free',
+    'meta-llama/llama-3.1-8b-instruct:free',
+    'meta-llama/llama-3.2-3b-instruct:free',
     'thudm/glm-z1-32b:free',
     'thudm/glm-4-32b:free',
     'nousresearch/hermes-3-llama-3.1-405b:free',
@@ -196,9 +165,10 @@ const TEXT_MODELS: Record<string, string[]> = {
   ],
   // ── CHEAP PROVIDERS ──────────────────────────────────────────────
   deepseek: [
+    'deepseek-v4-flash',
     'deepseek-chat',
     'deepseek-reasoner',
-    'deepseek-coder'
+    'deepseek-coder',
   ],
   together: [
     'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
@@ -305,27 +275,22 @@ const VISION_MODELS: Record<string, string[]> = {
     'meta-llama/llama-4-maverick-17b-128e-instruct',
     'llama-3.2-11b-vision-preview',
     'llama-3.2-90b-vision-preview',
-    'llama-3.2-11b-vision-instruct',
-    'llama-3.2-90b-vision-instruct'
   ],
   gemini: [
-    'gemini-2.5-pro',
     'gemini-2.5-flash',
+    'gemini-2.5-pro',
     'gemini-2.5-flash-lite',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-8b',
-    'gemini-1.5-pro'
   ],
   cerebras: [
     'llama-3.2-11b-vision-instruct'
   ],
   mistral: [
-    'pixtral-large-2411',
-    'pixtral-12b-2409',
-    'mistral-large-2411',
-    'mistral-medium-2505'
+    'mistral-small-2506',
+    'ministral-3b-2512',
+    'ministral-8b-2512',
+    'ministral-14b-2512',
+    'mistral-large-2512',
+    'mistral-medium-2508',
   ],
   cloudflare: [
     '@cf/meta/llama-3.2-11b-vision-instruct',
@@ -361,7 +326,8 @@ const VISION_MODELS: Record<string, string[]> = {
   // ── CHEAP PROVIDERS ──────────────────────────────────────────────
   deepseek: [
     'deepseek-chat',
-    'deepseek-reasoner'
+    'deepseek-reasoner',
+    'deepseek-v4-flash',
   ],
   together: [
     'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
@@ -463,28 +429,18 @@ export default function AITab({
   setContentProvider,
   contentModel,
   setContentModel,
-  contentKeys,
-  setContentKeys,
+  aiModelCredentials,
+  setAiModelCredentials,
   visionProvider,
   setVisionProvider,
   visionModel,
   setVisionModel,
-  visionKeys,
-  setVisionKeys,
-  aiTone,
-  setAiTone,
-  aiLanguage,
-  setAiLanguage,
-  aiCustomInstructions,
-  setAiCustomInstructions,
+  aiPersonaConfig,
+  setAiPersonaConfig,
   autoContentSeo,
   setAutoContentSeo,
   autoMediaAi,
   setAutoMediaAi,
-  targetAudiences,
-  setTargetAudiences,
-  productTypes,
-  setProductTypes,
   categoryDefaultTemplate,
   setCategoryDefaultTemplate,
   productDefaultTemplate,
@@ -504,6 +460,56 @@ export default function AITab({
 }: AITabProps) {
   const [customAudience, setCustomAudience] = useState('');
   const [customType, setCustomType] = useState('');
+  const [testingKey, setTestingKey] = useState<'content' | 'vision' | null>(null);
+  const [keyTestResult, setKeyTestResult] = useState<{ section: string; valid: boolean; message: string } | null>(null);
+
+  const handleTestKey = async (section: 'content' | 'vision') => {
+    const provider = section === 'content' ? contentProvider : visionProvider;
+    const keysRaw = aiModelCredentials?.[section]?.[provider] || '';
+    const firstKey = keysRaw.split('\n').map(k => k.trim()).filter(Boolean)[0];
+    if (!firstKey) {
+      setKeyTestResult({ section, valid: false, message: 'No API key entered' });
+      return;
+    }
+    setTestingKey(section);
+    setKeyTestResult(null);
+    try {
+      const res = await fetch('/api/ai/test-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey: firstKey, section }),
+      });
+      const data = await res.json();
+      setKeyTestResult({ section, valid: data.valid, message: data.valid ? 'Key is valid ✓' : (data.error || 'Invalid key') });
+    } catch {
+      setKeyTestResult({ section, valid: false, message: 'Connection failed' });
+    } finally {
+      setTestingKey(null);
+    }
+  };
+
+  const setContentKeys = (val: string) => {
+    setAiModelCredentials({
+      ...aiModelCredentials,
+      content: {
+        ...(aiModelCredentials.content || {}),
+        [contentProvider]: val,
+      },
+    });
+  };
+
+  const setVisionKeys = (val: string) => {
+    setAiModelCredentials({
+      ...aiModelCredentials,
+      vision: {
+        ...(aiModelCredentials.vision || {}),
+        [visionProvider]: val,
+      },
+    });
+  };
+
+  const contentKeys = aiModelCredentials?.content?.[contentProvider] || '';
+  const visionKeys = aiModelCredentials?.vision?.[visionProvider] || '';
 
   const handleContentProviderChange = (val: string) => {
     setContentProvider(val);
@@ -517,46 +523,61 @@ export default function AITab({
     setVisionModel(defaultModel);
   };
 
-  const audiencesList = targetAudiences.split(',').map(s => s.trim()).filter(Boolean);
-  const typesList = productTypes.split(',').map(s => s.trim()).filter(Boolean);
+  const hydrated = aiPersonaConfig && (aiPersonaConfig.targetAudiences?.length > 0 || aiPersonaConfig.productTypes?.length > 0);
+  const [isHydrated, setIsHydrated] = useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsHydrated(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const audiencesList = aiPersonaConfig.targetAudiences || [];
+  const typesList = aiPersonaConfig.productTypes || [];
 
   const toggleAudience = (aud: string) => {
-    let updated = [...audiencesList];
-    if (updated.includes(aud)) {
-      updated = updated.filter(a => a !== aud);
-    } else {
-      updated.push(aud);
-    }
-    setTargetAudiences(updated.join(', '));
+    const updated = audiencesList.includes(aud)
+      ? audiencesList.filter(a => a !== aud)
+      : [...audiencesList, aud];
+    setAiPersonaConfig({ ...aiPersonaConfig, targetAudiences: updated });
   };
 
   const addCustomAudience = () => {
     if (!customAudience.trim()) return;
     const clean = customAudience.trim();
     if (!audiencesList.includes(clean)) {
-      setTargetAudiences([...audiencesList, clean].join(', '));
+      setAiPersonaConfig({ ...aiPersonaConfig, targetAudiences: [...audiencesList, clean] });
     }
     setCustomAudience('');
   };
 
   const toggleProductType = (t: string) => {
-    let updated = [...typesList];
-    if (updated.includes(t)) {
-      updated = updated.filter(x => x !== t);
-    } else {
-      updated.push(t);
-    }
-    setProductTypes(updated.join(', '));
+    const updated = typesList.includes(t)
+      ? typesList.filter(x => x !== t)
+      : [...typesList, t];
+    setAiPersonaConfig({ ...aiPersonaConfig, productTypes: updated });
   };
 
   const addCustomProductType = () => {
     if (!customType.trim()) return;
     const clean = customType.trim();
     if (!typesList.includes(clean)) {
-      setProductTypes([...typesList, clean].join(', '));
+      setAiPersonaConfig({ ...aiPersonaConfig, productTypes: [...typesList, clean] });
     }
     setCustomType('');
   };
+
+  if (!isHydrated) {
+    return (
+      <div className="space-y-8 col-span-1 md:col-span-2">
+        <div className="bg-white dark:bg-[#16162a] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4" />
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4" />
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 col-span-1 md:col-span-2">
@@ -619,14 +640,28 @@ export default function AITab({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">API Key / Access Secret</label>
-                <textarea
-                  rows={2}
-                  value={contentKeys}
-                  onChange={(e) => setContentKeys(e.target.value)}
-                  placeholder="Enter API Key(s), one per line for rotation"
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2 text-xs font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
-                />
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">
+                  API Key / Access Secret
+                  {!contentKeys && (
+                    <span className="ml-2 text-[10px] font-bold text-amber-500 uppercase">Not Configured</span>
+                  )}
+                </label>
+                <div className="relative mt-1.5">
+                  <textarea
+                    rows={2}
+                    value={contentKeys}
+                    onChange={(e) => setContentKeys(e.target.value)}
+                    placeholder="Enter API Key(s), one per line for rotation"
+                    className={`w-full rounded-xl border bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2 text-xs font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all ${
+                      !contentKeys
+                        ? 'border-dashed border-amber-300 dark:border-amber-700'
+                        : 'border-gray-200 dark:border-gray-800'
+                    }`}
+                  />
+                  {!contentKeys && (
+                    <div className="absolute inset-0 rounded-xl border border-dashed border-amber-300 dark:border-amber-700 pointer-events-none" />
+                  )}
+                </div>
                 {PROVIDER_KEY_LINKS[contentProvider] && (
                   <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                     <span>Need keys?</span>
@@ -640,6 +675,25 @@ export default function AITab({
                     </a>
                   </div>
                 )}
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTestKey('content')}
+                    disabled={testingKey !== null || !contentKeys}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {testingKey === 'content' ? (
+                      <><Loader2 className="w-3 h-3 animate-spin" /> Testing...</>
+                    ) : (
+                      <><ShieldCheck className="w-3 h-3" /> Validate Key</>
+                    )}
+                  </button>
+                  {keyTestResult && keyTestResult.section === 'content' && (
+                    <span className={`text-xs font-semibold ${keyTestResult.valid ? 'text-green-600' : 'text-red-500'}`}>
+                      {keyTestResult.message}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -674,14 +728,28 @@ export default function AITab({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">API Key / Access Secret</label>
-                <textarea
-                  rows={2}
-                  value={visionKeys}
-                  onChange={(e) => setVisionKeys(e.target.value)}
-                  placeholder="Enter Vision API key"
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2 text-xs font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
-                />
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">
+                  API Key / Access Secret
+                  {!visionKeys && (
+                    <span className="ml-2 text-[10px] font-bold text-amber-500 uppercase">Not Configured</span>
+                  )}
+                </label>
+                <div className="relative mt-1.5">
+                  <textarea
+                    rows={2}
+                    value={visionKeys}
+                    onChange={(e) => setVisionKeys(e.target.value)}
+                    placeholder="Enter Vision API key"
+                    className={`w-full rounded-xl border bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2 text-xs font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all ${
+                      !visionKeys
+                        ? 'border-dashed border-amber-300 dark:border-amber-700'
+                        : 'border-gray-200 dark:border-gray-800'
+                    }`}
+                  />
+                  {!visionKeys && (
+                    <div className="absolute inset-0 rounded-xl border border-dashed border-amber-300 dark:border-amber-700 pointer-events-none" />
+                  )}
+                </div>
                 {PROVIDER_KEY_LINKS[visionProvider] && (
                   <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                     <span>Need keys?</span>
@@ -695,6 +763,25 @@ export default function AITab({
                     </a>
                   </div>
                 )}
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTestKey('vision')}
+                    disabled={testingKey !== null || !visionKeys}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {testingKey === 'vision' ? (
+                      <><Loader2 className="w-3 h-3 animate-spin" /> Testing...</>
+                    ) : (
+                      <><ShieldCheck className="w-3 h-3" /> Validate Key</>
+                    )}
+                  </button>
+                  {keyTestResult && keyTestResult.section === 'vision' && (
+                    <span className={`text-xs font-semibold ${keyTestResult.valid ? 'text-green-600' : 'text-red-500'}`}>
+                      {keyTestResult.message}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -709,8 +796,8 @@ export default function AITab({
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">Tone of Voice</label>
                   <select
-                    value={aiTone}
-                    onChange={(e) => setAiTone(e.target.value)}
+                    value={aiPersonaConfig.tone}
+                    onChange={(e) => setAiPersonaConfig({ ...aiPersonaConfig, tone: e.target.value })}
                     className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all cursor-pointer"
                   >
                     {AI_TONES.map((t) => (
@@ -724,8 +811,8 @@ export default function AITab({
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">Output Language</label>
                   <select
-                    value={aiLanguage}
-                    onChange={(e) => setAiLanguage(e.target.value)}
+                    value={aiPersonaConfig.language}
+                    onChange={(e) => setAiPersonaConfig({ ...aiPersonaConfig, language: e.target.value })}
                     className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all cursor-pointer"
                   >
                     {AI_LANGUAGES.map((l) => (
@@ -814,8 +901,8 @@ export default function AITab({
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-455">Custom System Instructions</label>
                   <textarea
                     rows={3}
-                    value={aiCustomInstructions}
-                    onChange={(e) => setAiCustomInstructions(e.target.value)}
+                    value={aiPersonaConfig.customInstructions}
+                    onChange={(e) => setAiPersonaConfig({ ...aiPersonaConfig, customInstructions: e.target.value })}
                     placeholder="e.g. Always write descriptions targeting young Pakistani fashion enthusiasts..."
                     className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all resize-none"
                   />

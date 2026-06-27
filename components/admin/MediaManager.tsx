@@ -128,6 +128,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const [bulkCompletedIds, setBulkCompletedIds] = useState<string[]>([]);
   const [bulkFailedIds, setBulkFailedIds] = useState<string[]>([]);
   const [bulkTotal, setBulkTotal] = useState(0);
+  const [visionApiError, setVisionApiError] = useState<string | null>(null);
 
   // ─── Edit Metadata Modal State ───────────────────────────────────────────
   const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
@@ -369,7 +370,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       const resData = await response.json();
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'completed', progress: 100 } : t));
       toast.success(`"${file.name}" uploaded successfully!`);
-      if (resData.meta?.ai_generated) toast.info(`Auto AI description added for: ${file.name}`);
+      if (resData.ai_generated) toast.info(`Auto AI description added for: ${file.name} (via ${resData.aiProvider || 'AI'})`);
       fetchMedia();
       if (mode === 'selector') {
         setSelectedLibraryUrls(prev => {
@@ -921,9 +922,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const handleSingleGenerate = async (item: MediaItem) => {
     try {
       setGeneratingId(item.id);
+      setVisionApiError(null);
       const response = await fetch('/api/media/ai-meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image_url: item.file_url, media_id: item.id }) });
       const resData = await response.json();
-      if (!response.ok) throw new Error(resData.error || 'Failed to generate meta');
+      if (!response.ok) {
+        if (response.status >= 500) setVisionApiError(resData.error || 'API key issue — update in Settings');
+        throw new Error(resData.error || 'Failed to generate meta');
+      }
       toast.success(`AI alt tags written for: ${item.original_filename}`);
       fetchMedia();
     } catch (err: any) { toast.error(err.message || 'AI metadata write failed'); }
@@ -939,6 +944,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       toast.info('All selected images are already tagged.');
       return;
     }
+    setVisionApiError(null);
     setBulkGenerating(true);
     setBulkTotal(pendingItems.length);
     setBulkCompletedIds([]);
@@ -1513,6 +1519,15 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                   className="w-10 h-6 rounded-full bg-gray-200 checked:bg-blue-600 appearance-none cursor-pointer transition-all relative after:content-[''] after:absolute after:h-5 after:w-5 after:bg-white after:rounded-full after:top-[2px] after:left-[2px] checked:after:left-[18px] after:transition-all"
                 />
               </div>
+              {visionApiError && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl text-xs w-full md:w-auto">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span className="text-red-700 dark:text-red-400 font-medium">{visionApiError}</span>
+                  <button type="button" onClick={() => setVisionApiError(null)} className="ml-auto text-red-400 hover:text-red-600 shrink-0">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                 {(['all', 'generated', 'pending'] as const).map(status => (
                   <button type="button" key={status} onClick={() => {

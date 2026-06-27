@@ -23,28 +23,29 @@ const PROVIDERS = [
 
 const TEXT_MODELS: Record<string, string[]> = {
   groq: [
-    'llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile',
-    'llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'gemma-7b-it',
-    'llama-3.3-70b-specdec', 'llama-3.2-1b-preview', 'llama-3.2-3b-preview',
-    'llama-3.2-11b-text-preview', 'llama-3.2-90b-text-preview',
-    'deepseek-r1-distill-llama-70b', 'qwen-qwq-32b', 'mistral-saba-24b',
-    'llama-4-scout-17b-16e-instruct', 'llama-4-maverick-17b-128e-instruct',
-    'meta-llama/llama-4-maverick-17b-128e-instruct'
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-70b-versatile',
+    'llama-3.1-8b-instant',
+    'deepseek-r1-distill-llama-70b',
+    'qwen-qwq-32b',
+    'llama3-70b-8192',
+    'llama3-8b-8192',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it',
+    'mistral-saba-24b',
   ],
   gemini: [
-    'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite',
-    'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-pro-exp',
-    'gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro',
+    'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite',
     'gemma-3-27b-it', 'gemma-3-12b-it', 'gemma-3-4b-it', 'gemma-3-1b-it'
   ],
   cerebras: ['llama-3.3-70b', 'llama-3.1-8b', 'llama-3.1-70b', 'llama3-70b-8k', 'llama3-8b-8k'],
   mistral: [
-    'mistral-small-latest', 'mistral-small-2506', 'mistral-small-2503',
-    'open-mistral-nemo', 'mistral-nemo-2407', 'ministral-3b-latest', 'ministral-8b-latest',
-    'mistral-large-latest', 'mistral-large-2411', 'mistral-large-2407',
-    'mistral-medium-latest', 'mistral-medium-2505', 'codestral-latest', 'codestral-2405',
-    'codestral-mamba-2407', 'magistral-small-2509', 'magistral-medium-2509',
-    'devstral-small-2505', 'pixtral-large-2411', 'pixtral-12b-2409'
+    'open-mistral-nemo',
+    'devstral-2512',
+    'magistral-medium-2509',
+    'magistral-small-2509',
   ],
   cloudflare: [
     '@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.3-70b-instruct',
@@ -68,20 +69,32 @@ const TEXT_MODELS: Record<string, string[]> = {
     'deepseek-ai/deepseek-r1', 'deepseek-ai/deepseek-coder-6.7b-instruct'
   ],
   openrouter: [
-    'google/gemma-3-27b-it:free', 'google/gemma-3-12b-it:free', 'google/gemma-3-4b-it:free',
-    'meta-llama/llama-4-maverick:free', 'meta-llama/llama-4-scout:free',
-    'meta-llama/llama-3.3-70b-instruct:free', 'meta-llama/llama-3.1-8b-instruct:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'meta-llama/llama-4-maverick:free',
+    'meta-llama/llama-4-scout:free',
+    'deepseek/deepseek-r1:free',
+    'deepseek/deepseek-chat:free',
+    'deepseek/deepseek-v3-base:free',
+    'qwen/qwen3-235b-a22b:free',
+    'qwen/qwen3-30b-a3b:free',
+    'qwen/qwen3-8b:free',
+    'google/gemma-3-27b-it:free',
+    'google/gemma-3-12b-it:free',
+    'google/gemma-3-4b-it:free',
+    'microsoft/phi-4-reasoning-plus:free',
+    'microsoft/phi-4-reasoning:free',
+    'microsoft/phi-4-mini-reasoning:free',
+    'mistralai/mistral-7b-instruct:free',
+    'mistralai/mistral-nemo:free',
+    'meta-llama/llama-3.1-8b-instruct:free',
     'meta-llama/llama-3.2-3b-instruct:free',
-    'deepseek/deepseek-r1:free', 'deepseek/deepseek-chat:free', 'deepseek/deepseek-v3-base:free',
-    'mistralai/mistral-7b-instruct:free', 'mistralai/mistral-nemo:free',
-    'qwen/qwen3-235b-a22b:free', 'qwen/qwen3-30b-a3b:free', 'qwen/qwen3-8b:free',
-    'qwen/qwen2.5-vl-7b-instruct:free',
-    'microsoft/phi-4-reasoning-plus:free', 'microsoft/phi-4-reasoning:free', 'microsoft/phi-4-mini-reasoning:free',
-    'thudm/glm-z1-32b:free', 'thudm/glm-4-32b:free',
-    'nousresearch/hermes-3-llama-3.1-405b:free', 'openchat/openchat-7b:free',
+    'thudm/glm-z1-32b:free',
+    'thudm/glm-4-32b:free',
+    'nousresearch/hermes-3-llama-3.1-405b:free',
+    'openchat/openchat-7b:free',
     'huggingfaceh4/zephyr-7b-beta:free'
   ],
-  deepseek: ['deepseek-chat', 'deepseek-reasoner', 'deepseek-coder'],
+  deepseek: ['deepseek-v4-flash', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-coder'],
   together: [
     'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8', 'meta-llama/Llama-4-Scout-17B-16E-Instruct',
     'meta-llama/Llama-3.3-70B-Instruct-Turbo', 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
@@ -131,17 +144,23 @@ const TEXT_MODELS: Record<string, string[]> = {
 
 const VISION_MODELS: Record<string, string[]> = {
   groq: [
-    'meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct',
-    'llama-3.2-11b-vision-preview', 'llama-3.2-90b-vision-preview',
-    'llama-3.2-11b-vision-instruct', 'llama-3.2-90b-vision-instruct'
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
+    'llama-3.2-11b-vision-preview',
+    'llama-3.2-90b-vision-preview',
   ],
   gemini: [
-    'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite',
-    'gemini-2.0-flash', 'gemini-2.0-flash-lite',
-    'gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'
+    'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite',
   ],
   cerebras: ['llama-3.2-11b-vision-instruct'],
-  mistral: ['pixtral-large-2411', 'pixtral-12b-2409', 'mistral-large-2411', 'mistral-medium-2505'],
+  mistral: [
+    'mistral-small-2506',
+    'ministral-3b-2512',
+    'ministral-8b-2512',
+    'ministral-14b-2512',
+    'mistral-large-2512',
+    'mistral-medium-2508',
+  ],
   cloudflare: [
     '@cf/meta/llama-3.2-11b-vision-instruct', '@cf/meta/llama-4-scout-17b-16e-instruct',
     '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/qwen/qwen2.5-vl-7b-instruct',
@@ -160,7 +179,7 @@ const VISION_MODELS: Record<string, string[]> = {
     'meta-llama/llama-3.2-11b-vision-instruct:free',
     'qwen/qwen2.5-vl-7b-instruct:free', 'microsoft/phi-4-multimodal-instruct:free'
   ],
-  deepseek: ['deepseek-chat', 'deepseek-reasoner'],
+  deepseek: ['deepseek-chat', 'deepseek-reasoner', 'deepseek-v4-flash'],
   together: [
     'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
     'meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo', 'meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo',
@@ -222,11 +241,12 @@ export default function SEOSettingsPage() {
   const [customType, setCustomType] = useState('');
   const [form, setForm] = useState({
     ai_enabled: false,
+    ai_model_credentials: {} as Record<string, Record<string, string>>,
     content_provider: 'groq',
     content_model: 'llama-3.3-70b-versatile',
     content_keys: '',
     vision_provider: 'gemini',
-    vision_model: 'gemini-2.0-flash',
+    vision_model: 'gemini-2.5-flash',
     vision_keys: '',
     brand_name: '',
     store_type: 'General',
@@ -266,11 +286,12 @@ export default function SEOSettingsPage() {
       if (data) {
         setForm({
           ai_enabled: data.ai_enabled ?? false,
+          ai_model_credentials: typeof data.ai_model_credentials === 'string' ? JSON.parse(data.ai_model_credentials) : (data.ai_model_credentials ?? {}),
           content_provider: data.content_provider || 'groq',
           content_model: data.content_model || 'llama-3.3-70b-versatile',
           content_keys: data.content_keys || '',
           vision_provider: data.vision_provider || 'gemini',
-          vision_model: data.vision_model || 'gemini-2.0-flash',
+          vision_model: data.vision_model || 'gemini-2.5-flash',
           vision_keys: data.vision_keys || '',
           brand_name: data.brand_name || '',
           store_type: data.store_type || 'General',
@@ -476,8 +497,17 @@ export default function SEOSettingsPage() {
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-300">API Keys (1 per line for rotation)</label>
                 <textarea
-                  value={form.content_keys}
-                  onChange={(e) => setForm(prev => ({ ...prev, content_keys: e.target.value }))}
+                  value={form.ai_model_credentials?.content?.[form.content_provider] || ''}
+                  onChange={(e) => setForm(prev => ({
+                    ...prev,
+                    ai_model_credentials: {
+                      ...prev.ai_model_credentials,
+                      content: {
+                        ...(prev.ai_model_credentials?.content || {}),
+                        [prev.content_provider]: e.target.value,
+                      },
+                    },
+                  }))}
                   placeholder="Paste API keys here..."
                   rows={4}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-sm font-mono text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none"
@@ -544,8 +574,17 @@ export default function SEOSettingsPage() {
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Vision API Keys (1 per line)</label>
                 <textarea
-                  value={form.vision_keys}
-                  onChange={(e) => setForm(prev => ({ ...prev, vision_keys: e.target.value }))}
+                  value={form.ai_model_credentials?.vision?.[form.vision_provider] || ''}
+                  onChange={(e) => setForm(prev => ({
+                    ...prev,
+                    ai_model_credentials: {
+                      ...prev.ai_model_credentials,
+                      vision: {
+                        ...(prev.ai_model_credentials?.vision || {}),
+                        [prev.vision_provider]: e.target.value,
+                      },
+                    },
+                  }))}
                   placeholder="Paste Vision API keys here..."
                   rows={4}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-sm font-mono text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none"
