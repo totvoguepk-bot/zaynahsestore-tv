@@ -1,7 +1,7 @@
 import { CartItem, StoreSettings } from '@/lib/types';
 
-export const formatPrice = (amount: number, symbol = 'Rs.'): string =>
-  `${symbol} ${amount.toLocaleString('en-PK')}`;
+export const formatPrice = (amount: number | undefined | null, symbol = 'Rs.'): string =>
+  `${symbol} ${(amount ?? 0).toLocaleString('en-PK')}`;
 
 export const generateWhatsAppMessage = (
   items: CartItem[],
