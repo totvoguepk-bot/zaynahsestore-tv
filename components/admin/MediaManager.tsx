@@ -34,6 +34,7 @@ import { createClient } from '@/lib/supabase/client';
 import { logDbError } from '@/lib/utils/dbErrorHandler';
 import JSZip from 'jszip';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
+import SortableMediaGrid from '@/components/admin/SortableMediaGrid';
 
 interface MediaManagerProps {
   mode: 'library' | 'selector';
@@ -146,6 +147,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const [sepia, setSepia] = useState(0);
   const [invert, setInvert] = useState(0);
   const [isSavingEdits, setIsSavingEdits] = useState(false);
+  const [isSavingSortOrder, setIsSavingSortOrder] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // ════════════════════════════════════════════════════════════════════════
   // 1. DATA LOADING
@@ -401,8 +404,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     executeActualUpload(taskId, file);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const processUploadedFiles = (files: File[]) => {
     if (!files.length) return;
     if (mode === 'selector' && !multiple && files.length > 1) { toast.warning('Please select only one file.'); return; }
     setUploading(true);
@@ -410,8 +412,52 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     setUploadTasks(prev => [...prev, ...newTasks]);
     newTasks.forEach(task => startUploadTask(task));
     setUploading(false);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    processUploadedFiles(files);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (e.target) e.target.value = '';
+  };
+
+  // ─── Drag & Drop Overlay ───────────────────────────────────────────────
+  const dragCounter = useRef(0);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      processUploadedFiles(files);
+    }
   };
 
   const handleCancelUpload = (taskId: string) => setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'cancelled' as const } : t));
@@ -421,7 +467,34 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   };
 
   // ════════════════════════════════════════════════════════════════════════
-  // 5. LIBRARY SELECTION
+  // 5. SORT ORDER MANAGEMENT
+  // ════════════════════════════════════════════════════════════════════════
+
+  const handleSaveSortOrder = async (orderedIds: string[]) => {
+    setIsSavingSortOrder(true);
+    try {
+      const supabase = createClient();
+      const updates = orderedIds.map((id, index) => ({
+        id,
+        sort_order: index,
+      }));
+      await Promise.all(
+        updates.map(({ id, sort_order }) =>
+          supabase.from('media_library').update({ sort_order }).eq('id', id)
+        )
+      );
+      toast.success('Sort order saved successfully');
+      await fetchMedia();
+    } catch (err: any) {
+      console.error('[Media Manager] Failed to save sort order:', err);
+      toast.error('Failed to save sort order');
+    } finally {
+      setIsSavingSortOrder(false);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 6. LIBRARY SELECTION
   // ════════════════════════════════════════════════════════════════════════
 
   const toggleSelect = (item: MediaItem) => {
@@ -1293,7 +1366,26 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   // ════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className={`space-y-6 w-full ${mode === 'library' ? 'p-4 md:p-6 max-w-7xl mx-auto' : 'p-6 overflow-y-auto flex-1'}`}>
+    <div
+      className={`space-y-6 w-full relative ${mode === 'library' ? 'p-4 md:p-6 max-w-7xl mx-auto' : 'p-6 overflow-y-auto flex-1'}`}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drop Zone Overlay */}
+      {isDragging && mode === 'library' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 bg-blue-600/10" />
+          <div className="relative bg-white dark:bg-[#16162a] border-4 border-dashed border-blue-500 rounded-3xl p-12 shadow-2xl text-center max-w-md">
+            <Upload className="w-12 h-12 mx-auto mb-4 text-blue-500" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Drop files here</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Release to upload to your media library
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       {mode === 'library' && (
@@ -1530,65 +1622,73 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             <div className="text-center py-16 text-gray-400 bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
               No media files found matching the search criteria.
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {paginatedMedia.map(item =>
-                renderMediaCard(
-                  item,
-                  mode === 'selector' ? selectedLibraryUrls.has(item.file_url) : selectedIds.includes(item.id),
-                  () => toggleSelect(item)
-                )
-              )}
-            </div>
-          )}
-
-          {/* Pagination Controls */}
-          {filteredMedia.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs mt-4 text-xs font-bold text-gray-700 dark:text-gray-300">
-              <div className="flex items-center gap-2">
-                <span>Show per page:</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="rounded-lg border border-gray-250 dark:border-gray-800 bg-white dark:bg-[#16162a] px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
-                >
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
+          ) : mode === 'selector' ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {paginatedMedia.map(item =>
+                  renderMediaCard(
+                    item,
+                    selectedLibraryUrls.has(item.file_url),
+                    () => toggleSelect(item)
+                  )
+                )}
               </div>
-
               {filteredMedia.length > pageSize && (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-2">
-                    Page {currentPage} of {Math.ceil(filteredMedia.length / pageSize)}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={currentPage >= Math.ceil(filteredMedia.length / pageSize)}
-                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredMedia.length / pageSize), prev + 1))}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-                  >
-                    Next
-                  </button>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs mt-4 text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <span>Show per page:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="rounded-lg border border-gray-250 dark:border-gray-800 bg-white dark:bg-[#16162a] px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={200}>200</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-2">
+                      Page {currentPage} of {Math.ceil(filteredMedia.length / pageSize)}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={currentPage >= Math.ceil(filteredMedia.length / pageSize)}
+                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredMedia.length / pageSize), prev + 1))}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <div className="text-gray-500 dark:text-gray-400 font-medium">
+                    Showing {Math.min(filteredMedia.length, (currentPage - 1) * pageSize + 1)}-{Math.min(filteredMedia.length, currentPage * pageSize)} of {filteredMedia.length} files
+                  </div>
                 </div>
               )}
-
-              <div className="text-gray-500 dark:text-gray-400 font-medium">
-                Showing {Math.min(filteredMedia.length, (currentPage - 1) * pageSize + 1)}-{Math.min(filteredMedia.length, currentPage * pageSize)} of {filteredMedia.length} files
-              </div>
-            </div>
+            </>
+          ) : (
+            <SortableMediaGrid
+              items={filteredMedia}
+              onItemsReorder={() => {}}
+              onSave={handleSaveSortOrder}
+              renderItem={(item, selected, onToggle) =>
+                renderMediaCard(item, selected, onToggle)
+              }
+              isSelected={(item) => selectedIds.includes(item.id)}
+              onToggle={(item) => toggleSelect(item)}
+              saving={isSavingSortOrder}
+            />
           )}
 
           {/* Selector Footer */}

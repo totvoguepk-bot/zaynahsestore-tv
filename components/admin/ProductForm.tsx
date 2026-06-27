@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Trash2, Plus, Upload, Star, Bold, Italic, Underline, List, ListOrdered, Code, Eye, X, FolderOpen, Search, Check, Image as ImageIcon, ChevronDown, ChevronUp, Zap, Loader2 } from '@/components/common/Icons';
+import { Trash2, Plus, Upload, Star, Bold, Italic, Underline, List, ListOrdered, Code, Eye, X, FolderOpen, Search, Check, Image as ImageIcon, ChevronDown, ChevronUp, Zap, Loader2, GripVertical, AlertTriangle } from '@/components/common/Icons';
+import HorizontalSortableList from '@/components/admin/HorizontalSortableList';
 import { Product, ProductImage, ProductVariant, ProductModifier, Category, VariantPreset, VariantPresetValue, Badge, SizeGuide } from '@/lib/types';
 import { createProduct, updateProduct } from '@/lib/services/products';
 import { deleteProductImage } from '@/lib/services/storage';
@@ -343,6 +344,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const [presets, setPresets] = useState<VariantPreset[]>([]);
   const [collapsedAxes, setCollapsedAxes] = useState<boolean[]>(() => initAxes().map(() => false));
   const [variantsSectionCollapsed, setVariantsSectionCollapsed] = useState(false);
+  const [axisOrderChanged, setAxisOrderChanged] = useState(false);
 
   useEffect(() => {
     setCollapsedAxes(prev => {
@@ -386,6 +388,13 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       next[idx + 1] = temp;
       return next;
     });
+  };
+
+  const handleReorderAxisValues = (axisIdx: number, reorderedValues: AxisValue[]) => {
+    setVariantAxes(prev =>
+      prev.map((a, i) => (i === axisIdx ? { ...a, values: reorderedValues } : a))
+    );
+    setAxisOrderChanged(true);
   };
 
   useEffect(() => {
@@ -580,7 +589,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       };
     });
 
-    setVariants(prev => [...prev, ...newVariants]);
+    setVariants(newVariants);
     setSelectedVariantIndices([]); // Clear selection when new combinations are generated
     toast.success(`Generated ${newVariants.length} variant${newVariants.length !== 1 ? 's' : ''}!`);
   };
@@ -1356,34 +1365,43 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                         </div>
                       )}
 
-                      {/* Tag chip input */}
+                      {/* Tag chip input — horizontally sortable */}
                       <div>
-                        <div className="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
-                          {axis.values.map((val, valIdx) => (
-                            <div
-                              key={valIdx}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-xs font-semibold text-gray-800 dark:text-gray-200 group"
-                            >
-                              {/* Color dot/hex indicator */}
+                        {axisOrderChanged && (
+                          <div className="flex items-center gap-1.5 mb-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Value order changed — will apply on variant re-generation</span>
+                          </div>
+                        )}
+                        <HorizontalSortableList
+                          items={axis.values.map(v => ({ ...v, id: v.label }))}
+                          onReorder={(reordered) => handleReorderAxisValues(axisIdx, reordered.map(r => ({ label: r.label, hex: r.hex, imageUrl: r.imageUrl, showImageSwatch: r.showImageSwatch })))}
+                          getId={(v) => v.label}
+                          renderItem={(val) => (
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-xs font-semibold text-gray-800 dark:text-gray-200 cursor-grab active:cursor-grabbing select-none">
+                              <GripVertical className="w-3 h-3 text-gray-400 flex-shrink-0" />
                               {axis.type === 'color' && (
                                 <span
                                   className="flex-shrink-0 h-3.5 w-3.5 rounded-full border border-gray-300 dark:border-gray-600 shadow-sm"
-                                  style={{ background: val.hex || '#ccc' }}
+                                  style={{ background: (val as any).hex || '#ccc' }}
                                 />
                               )}
                               <span>{val.label}</span>
                               <button
                                 type="button"
-                                onClick={() => setVariantAxes(prev => prev.map((a, i) =>
-                                  i === axisIdx ? { ...a, values: a.values.filter((_, vi) => vi !== valIdx) } : a
-                                ))}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setVariantAxes(prev => prev.map((a, i) =>
+                                    i === axisIdx ? { ...a, values: a.values.filter(v => v.label !== val.label) } : a
+                                  ));
+                                }}
                                 className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"
                               >
                                 <X className="h-3 w-3" />
                               </button>
                             </div>
-                          ))}
-                        </div>
+                          )}
+                        />
 
                         {/* Add value row */}
                         <div className="flex items-center gap-2">

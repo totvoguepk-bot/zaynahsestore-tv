@@ -1016,6 +1016,7 @@ CREATE TABLE IF NOT EXISTS media_library (
   bucket TEXT,
   file_size BIGINT,
   mime_type TEXT,
+  sort_order INTEGER DEFAULT 0,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

@@ -347,7 +347,7 @@ export default function ShopPage({
     } else {
       params.delete('category');
     }
-    router.replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   // Pre-calculate category counts
@@ -529,7 +529,7 @@ export default function ShopPage({
     setShowAllColors(false);
     setShowAllSizes(false);
     setShowAllMaterials(false);
-    router.replace(pathname);
+    router.replace(pathname, { scroll: false });
   };
 
 

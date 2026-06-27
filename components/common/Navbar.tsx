@@ -239,17 +239,24 @@ export default function Navbar({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen, setSearchOpen]);
 
-  // Reset search query on pathname change to prevent stale search results on page transitions
-  // Also scroll window to top on path/query changes (except when scroll restoration is scheduled)
+  // Reset search query on pathname/searchParams change
+  // to prevent stale search results on page transitions
   useEffect(() => {
     setSearchQuery('');
+  }, [pathname, searchParams, setSearchQuery]);
+
+  // Scroll window to top on page navigation (pathname change only)
+  // Does NOT fire on same-page searchParams changes (e.g. pagination, filter)
+  // because those should preserve the user's scroll position.
+  // Exception: when a scroll restoration is scheduled (store_scroll_restore)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasSavedScroll = sessionStorage.getItem('store_scroll_restore');
       if (!hasSavedScroll) {
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
     }
-  }, [pathname, searchParams, setSearchQuery]);
+  }, [pathname]);
 
   // Helper renderers for dynamic alignment
   const customTextColorStyle = headerTextColor !== '#1a1a2e' ? { color: headerTextColor } : {};
