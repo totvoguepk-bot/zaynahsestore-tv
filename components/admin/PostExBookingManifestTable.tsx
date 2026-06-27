@@ -568,7 +568,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
                       </td>
                       <td className="py-2 px-3">
                         {res ? (
-                          res.success ? <Check className="h-4 w-4 text-emerald-500" /> : <AlertTriangle className="h-4 w-4 text-red-500" />
+                          res.success ? <Check className="h-4 w-4 text-emerald-500" /> : <span title={res.error}><AlertTriangle className="h-4 w-4 text-red-500" /></span>
                         ) : (
                           <div className="flex items-center gap-1">
                             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -589,7 +589,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
                         {res?.success ? (
                           <Check className="h-4 w-4 text-emerald-500" />
                         ) : res && !res.success ? (
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                          <span title={res.error}><AlertTriangle className="h-4 w-4 text-red-500" /></span>
                         ) : (
                           <button
                             type="button"
@@ -652,9 +652,16 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
                       </button>
                     )}
                     {res?.success && <Check className="h-5 w-5 text-emerald-500" />}
-                    {res && !res.success && <AlertTriangle className="h-5 w-5 text-red-500" />}
+                    {res && !res.success && <span title={res.error}><AlertTriangle className="h-5 w-5 text-red-500" /></span>}
                   </div>
                 </div>
+                {/* Error message */}
+                {res && !res.success && (
+                  <div className="flex items-start gap-2 text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 p-3 rounded-xl border border-red-200 dark:border-red-900/50">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>{res.error}</span>
+                  </div>
+                )}
                 {/* Specs bar for mobile */}
                 {!res && (row.shipmentType !== 'Normal' || row.fragile === 'Yes' || row.remarks || row.pieces !== '1') && (
                   <div className="flex flex-wrap items-center gap-1.5 -mt-1">
@@ -758,7 +765,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
                     res.success
                       ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
                       : 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50'
-                  }`}>
+                  }`} title={res.success ? '' : res.error}>
                     {res.success ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
                     {o.orderNumber}
                   </span>

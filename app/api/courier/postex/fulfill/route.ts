@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       finalItems = parseInt(s.postex_default_items) || 1;
     }
 
-    let totalAmount = reqTotal !== undefined ? parseFloat(String(reqTotal)) : (parseFloat(order.total) || 0);
+    let totalAmount = reqTotal !== undefined && reqTotal !== '' && !isNaN(parseFloat(String(reqTotal))) ? parseFloat(String(reqTotal)) : (parseFloat(order.total) || 0);
     if (totalAmount && reqTotal === undefined && (s.postex_cod_check || '0') === '1') {
       const searchText = `${remarks || ''} ${itemName} ${order.notes || ''}`.toLowerCase();
       if (searchText.includes('paid') || searchText.includes('prepaid') || searchText.includes('non-cod') || searchText.includes('non cod')) {
