@@ -337,7 +337,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
         city: guessedCity,
         cod: o.total?.toString() || '0',
         kg: settings.postex_default_weight || '0.5',
-        shipmentType: settings.postex_order_type || 'Normal',
+        shipmentType: 'Normal',
         fragile: 'No',
         pieces: piecesCount,
         remarks: settings.postex_default_remarks || '',
