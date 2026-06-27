@@ -1,12 +1,15 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Copy } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Copy, Trash2 } from 'lucide-react';
 import ProductForm from '@/components/admin/ProductForm';
-import { getProductById } from '@/lib/services/products';
+import { getProductById, deleteProduct } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
 import { getClientSiteUrl } from '@/lib/site-url';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import TrashProductButton from '@/components/admin/TrashProductButton';
 
 export const revalidate = 0; // Dynamic server rendering
 
@@ -58,6 +61,7 @@ export default async function EditProductPage({ params }: PageProps) {
             <ExternalLink className="h-4 w-4" />
             <span>View Storefront</span>
           </a>
+          <TrashProductButton productId={id} />
         </div>
       </div>
       <ProductForm categories={categories} initialProduct={product} aiEnabled={settings.ai_enabled} storeUrl={settings.storeUrl || undefined} />

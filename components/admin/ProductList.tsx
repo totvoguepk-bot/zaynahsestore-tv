@@ -126,6 +126,18 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     }
   };
 
+  const handleToggleActive = async (product: Product) => {
+    try {
+      const nextActive = !product.isActive;
+      await updateProductFields(product.id, { isActive: nextActive });
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: nextActive } : p));
+      toast.success(`Product ${nextActive ? 'visible on store' : 'hidden from store'} successfully`);
+    } catch (err) {
+      console.error('[ProductList] handleToggleActive failed:', err);
+      toast.error('Failed to update product visibility');
+    }
+  };
+
   const handleSyncAll = async () => {
     setSyncingAll(true);
     try {
@@ -372,6 +384,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                       <th className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell">SKU</th>
                       <th className="py-3 px-4 md:py-4 md:px-6">Price</th>
                       <th className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell">Stock</th>
+                      <th className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell text-center">Visible</th>
                       <th className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell text-center">Featured</th>
                       {settings.meta_sync_enabled && <th className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell">Meta Sync</th>}
                       <th className="py-3 px-4 md:py-4 md:px-6 text-center">Actions</th>
@@ -410,9 +423,17 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                                   {product.name}
                                 </p>
                               </div>
-                              {product.category && (
-                                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{product.category.name}</span>
-                              )}
+                              {product.productCategories && product.productCategories.length > 0 ? (
+                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                  {product.productCategories.map((pc) => pc.category ? (
+                                    <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                                      {pc.category.name}
+                                    </span>
+                                  ) : null)}
+                                </div>
+                              ) : product.category ? (
+                                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 ml-0.5">{product.category.name}</span>
+                              ) : null}
                             </div>
                           </td>
                           <td className="py-3 px-4 md:py-4 md:px-6 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden md:table-cell">{product.sku || '—'}</td>
@@ -423,6 +444,25 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                             ) : (
                               product.stock
                             )}
+                          </td>
+                          <td className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell text-center">
+                            <div className="flex items-center justify-center">
+                              <button
+                                onClick={() => handleToggleActive(product)}
+                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                  product.isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
+                                }`}
+                                role="switch"
+                                aria-checked={product.isActive}
+                                title={product.isActive ? 'Visible on store' : 'Hidden from store'}
+                              >
+                                <span
+                                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                                    product.isActive ? 'translate-x-5' : 'translate-x-0'
+                                  }`}
+                                />
+                              </button>
+                            </div>
                           </td>
                           <td className="py-3 px-4 md:py-4 md:px-6 hidden md:table-cell text-center">
                             <div className="flex items-center justify-center">
@@ -534,11 +574,41 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                           <h3 className="text-sm font-black text-[#1a1a2e] dark:text-white truncate flex-1 line-clamp-1 max-w-[250px]">{product.name}</h3>
                           <span className="text-sm font-black text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currencySymbol)}</span>
                         </div>
-                        {product.category && <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{product.category.name}</p>}
+                        {product.productCategories && product.productCategories.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {product.productCategories.map((pc) => pc.category ? (
+                              <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                                {pc.category.name}
+                              </span>
+                            ) : null)}
+                          </div>
+                        ) : product.category ? (
+                          <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{product.category.name}</p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-[10px]">
                       <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleToggleActive(product)}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              product.isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
+                            }`}
+                            role="switch"
+                            aria-checked={product.isActive}
+                            title={product.isActive ? 'Visible on store' : 'Hidden from store'}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                product.isActive ? 'translate-x-4' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                          <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+                            {product.isActive ? 'Visible' : 'Hidden'}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleToggleFeatured(product)}

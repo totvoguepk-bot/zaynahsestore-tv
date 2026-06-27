@@ -78,6 +78,7 @@ export interface Product {
   hasVariants: boolean;
   isService: boolean;
   isFeatured: boolean;
+  isActive: boolean;
   enableSwatches: boolean;
   showSwatchesOnArchive: boolean;
   customBadgeId?: string;
@@ -146,6 +147,8 @@ export interface StoreSettings {
   safeCheckoutMethods: string[];
   enableTicker: boolean;
   tickerText: string;
+  productDetailEnableTicker: boolean;
+  productDetailTickerText: string;
   enableVariantSwatches: boolean;
   swatchShape: 'circle' | 'square';
   swatchSize: 'sm' | 'md' | 'lg'; // Deprecated but kept
@@ -336,6 +339,31 @@ export interface StoreSettings {
   snapchat_pixel_id?: string;
   pinterest_tag_id?: string;
 
+  // PostEx courier integration
+  postex_enabled?: boolean;
+  postex_api_token?: string;
+  postex_mode?: string;
+  postex_pickup_address?: string;
+  postex_return_address?: string;
+  postex_order_type?: string;
+  postex_handling_type?: string;
+  postex_default_remarks?: string;
+  postex_pickup_display?: string;
+  postex_return_display?: string;
+  postex_return_city?: string;
+  postex_product_check?: string;
+  postex_sku_check?: string;
+  postex_weight_check?: string;
+  postex_pieces_check?: string;
+  postex_cod_check?: string;
+  postex_notes_check?: string;
+  postex_default_weight?: string;
+  postex_default_items?: string;
+  postex_default_product?: string;
+  postex_whatsapp_template?: string;
+  postex_whatsapp_note?: string;
+  postex_auto_download_label?: boolean;
+
   // Social & SEO
   twitter_handle?: string;
   meta_title_suffix?: string;
@@ -478,7 +506,7 @@ export interface CartItem {
 
 export interface StatusLogItem {
   id: string;
-  type: 'creation' | 'status_change' | 'staff_note';
+  type: 'creation' | 'status_change' | 'staff_note' | 'whatsapp_notification' | 'payment';
   message: string;
   status?: string;
   notes?: string;
@@ -506,6 +534,9 @@ export interface Order {
   items: CartItem[];
   subtotal: number;
   total: number;
+  discountAmount?: number;
+  shippingAmount?: number;
+  discountCode?: string;
   status: 'pending' | 'placed' | 'confirmed' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
   notes?: string;
   staffNotes?: string;

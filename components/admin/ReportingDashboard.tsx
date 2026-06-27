@@ -3,10 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  ShoppingBag, 
+import {
+  TrendingUp,
+  DollarSign,
+  ShoppingBag,
   Calendar,
   Layers,
   ArrowUpRight
@@ -26,13 +26,13 @@ export default function ReportingDashboard({ orders, settings, isEmbed = false }
   // 1. Filter orders based on date range
   const filteredOrders = useMemo(() => {
     const now = new Date();
-    
+
     const getStartOfDay = (d: Date) => {
       const copy = new Date(d);
       copy.setHours(0, 0, 0, 0);
       return copy.getTime();
     };
-    
+
     const getEndOfDay = (d: Date) => {
       const copy = new Date(d);
       copy.setHours(23, 59, 59, 999);
@@ -81,13 +81,13 @@ export default function ReportingDashboard({ orders, settings, isEmbed = false }
   const metrics = useMemo(() => {
     // Only count non-cancelled orders for revenue reporting
     const reportingOrders = filteredOrders.filter(o => o.status !== 'cancelled');
-    
+
     let totalSales = 0;
     let totalCOGS = 0;
 
     reportingOrders.forEach(order => {
       totalSales += order.total;
-      
+
       // Calculate COGS from item products
       order.items.forEach(item => {
         const cost = item.product.cost ? parseFloat(item.product.cost.toString()) : 0;
@@ -304,13 +304,13 @@ export default function ReportingDashboard({ orders, settings, isEmbed = false }
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">{topProducts.map((p, idx) => (
-                      <tr key={p.id || idx} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
-                        <td className="py-3 font-bold text-gray-900 dark:text-white truncate max-w-xs">{p.name}</td>
-                        <td className="py-3 text-center font-bold text-gray-800 dark:text-gray-200">{p.qty}</td>
-                        <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(p.sales, settings.currencySymbol)}</td>
-                        <td className="py-3 text-right text-emerald-600 dark:text-emerald-400 font-black">{formatPrice(p.profit, settings.currencySymbol)}</td>
-                      </tr>
-                    ))}
+                    <tr key={p.id || idx} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
+                      <td className="py-3 font-bold text-gray-900 dark:text-white truncate max-w-xs">{p.name}</td>
+                      <td className="py-3 text-center font-bold text-gray-800 dark:text-gray-200">{p.qty}</td>
+                      <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(p.sales, settings.currencySymbol)}</td>
+                      <td className="py-3 text-right text-emerald-600 dark:text-emerald-400 font-black">{formatPrice(p.profit, settings.currencySymbol)}</td>
+                    </tr>
+                  ))}
                   </tbody>
                 </table>
               </div>
@@ -354,7 +354,7 @@ export default function ReportingDashboard({ orders, settings, isEmbed = false }
               const count = row.count;
               const totalOrders = filteredOrders.length;
               const percentage = totalOrders > 0 ? (count / totalOrders) * 100 : 0;
-              
+
               return (
                 <div key={row.status} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-semibold">
@@ -364,14 +364,13 @@ export default function ReportingDashboard({ orders, settings, isEmbed = false }
                     </span>
                   </div>
                   <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        row.status === 'delivered' ? 'bg-emerald-500' :
-                        row.status === 'confirmed' ? 'bg-blue-500' :
-                        row.status === 'pending' ? 'bg-amber-500' :
-                        row.status === 'cancelled' ? 'bg-red-500' :
-                        'bg-purple-500'
-                      }`}
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${row.status === 'delivered' ? 'bg-emerald-500' :
+                          row.status === 'confirmed' ? 'bg-blue-500' :
+                            row.status === 'pending' ? 'bg-amber-500' :
+                              row.status === 'cancelled' ? 'bg-red-500' :
+                                'bg-purple-500'
+                        }`}
                       style={{ width: `${percentage}%` }}
                     />
                   </div>

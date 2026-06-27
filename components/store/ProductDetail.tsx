@@ -310,13 +310,24 @@ export default function ProductDetail({ product, settings, averageRating, social
       });
     }
 
-    // Update recently viewed products in localStorage
+    // Update recently viewed — use localStorage with sessionStorage fallback
+    // TikTok/Instagram in-app browsers may block localStorage
     try {
-      const recentStr = localStorage.getItem('recently-viewed') || '[]';
+      let storage: Storage;
+      try {
+        localStorage.setItem('_rv_test', '1');
+        localStorage.removeItem('_rv_test');
+        storage = localStorage;
+      } catch {
+        storage = sessionStorage;
+      }
+      const recentStr = storage.getItem('recently-viewed') || '[]';
       const recent: string[] = JSON.parse(recentStr);
       const filtered = recent.filter(id => id !== product.id);
       const updated = [product.id, ...filtered].slice(0, 10);
-      localStorage.setItem('recently-viewed', JSON.stringify(updated));
+      storage.setItem('recently-viewed', JSON.stringify(updated));
+      // Also mirror to sessionStorage so in-app browsers can read it
+      try { sessionStorage.setItem('recently-viewed', JSON.stringify(updated)); } catch { /* ignore */ }
       window.dispatchEvent(new Event('recently-viewed-updated'));
     } catch (err) {
       console.error('Failed to update recently viewed:', err);
@@ -443,9 +454,11 @@ export default function ProductDetail({ product, settings, averageRating, social
   }, [selectedVariant, mounted, product.name, product.price, settings.currency]);
 
   const handleAddBundleToCart = () => {
-    // Add main product
-    addItem(product, selectedVariant, selectedModifiers, 1);
-    // Add selected bundle products — use the chosen variant if product has variants
+    // NOTE: Main product (upper wala) is intentionally NOT added here.
+    // User is already on this product page and may have already added it.
+    // Only add the selected bundle products below.
+    const addedNames: string[] = [];
+
     bundleProducts.forEach(bp => {
       if (selectedBundleIds.includes(bp.id)) {
         let chosenVariant: ProductVariant | undefined = undefined;
@@ -455,15 +468,20 @@ export default function ProductDetail({ product, settings, averageRating, social
             ?? bp.variants.filter(v => v.active)[0];
         }
         addItem(bp, chosenVariant, [], 1);
+        addedNames.push(bp.name);
       }
     });
 
+    if (addedNames.length === 0) {
+      toast.error('Please select at least one bundle item to add.');
+      return;
+    }
+
     // Track AddToCart for bundle
-    const totalBundleValue = (selectedVariant?.price ?? product.price) +
-      bundleProducts
-        .filter(p => selectedBundleIds.includes(p.id))
-        .reduce((sum, p) => sum + p.price, 0);
-    const bundleIds = [selectedVariant?.id || product.id, ...bundleProducts.filter(p => selectedBundleIds.includes(p.id)).map(p => p.id)];
+    const totalBundleValue = bundleProducts
+      .filter(p => selectedBundleIds.includes(p.id))
+      .reduce((sum, p) => sum + p.price, 0);
+    const bundleIds = bundleProducts.filter(p => selectedBundleIds.includes(p.id)).map(p => p.id);
     trackEvent('AddToCart', {
       content_ids: bundleIds,
       content_name: `${product.name} Bundle`,
@@ -472,8 +490,9 @@ export default function ProductDetail({ product, settings, averageRating, social
       currency: settings.currency || 'PKR'
     });
 
-    toast.success('Successfully added bundle items to cart!');
+    toast.success(`${addedNames.length} bundle item${addedNames.length > 1 ? 's' : ''} added to cart!`);
   };
+
 
   // Price calculations
   const activeVariants = product.variants.filter(v => v.active);
@@ -565,7 +584,7 @@ export default function ProductDetail({ product, settings, averageRating, social
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Back button */}
-      <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-[#e94560] transition-colors">
+      <Link href="/shop" className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-[#e94560] transition-colors">
         <ChevronLeft className="h-4 w-4" />
         <span>Back to Shop</span>
       </Link>

@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS products (
   stock INTEGER DEFAULT 0,              -- total stock (sum of variants or direct)
   has_variants BOOLEAN DEFAULT false,   -- true if variants exist
   is_featured BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
   is_service BOOLEAN DEFAULT false,     -- no stock tracking
   enable_swatches BOOLEAN DEFAULT true,
   show_swatches_on_archive BOOLEAN DEFAULT true,
@@ -253,6 +254,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
   safe_checkout_methods TEXT[] DEFAULT '{"visa", "mastercard", "paypal", "amex", "klarna", "cirrus", "westernunion"}',
   enable_ticker BOOLEAN DEFAULT false,
   ticker_text TEXT DEFAULT 'Free returns within 30 days' || CHR(10) || 'Unlimited delivery for only $175',
+  product_detail_enable_ticker BOOLEAN DEFAULT false,
+  product_detail_ticker_text TEXT DEFAULT 'Free returns within 30 days' || CHR(10) || 'Unlimited delivery for only $175',
   swatch_limit INTEGER DEFAULT 8,
   default_variant_index INTEGER DEFAULT 1,
   image_hover_style TEXT DEFAULT 'second_image',
@@ -523,6 +526,31 @@ CREATE TABLE IF NOT EXISTS store_settings (
   popular_searches TEXT DEFAULT 'Co-ord Sets, Sonic, Graphic Tee, T-shirt, Kids',
   meta_sync_enabled BOOLEAN DEFAULT false,
 
+  -- PostEx courier integration
+  postex_enabled BOOLEAN DEFAULT false,
+  postex_api_token TEXT DEFAULT '',
+  postex_mode TEXT DEFAULT 'sandbox',
+  postex_pickup_address TEXT DEFAULT '',
+  postex_return_address TEXT DEFAULT '',
+  postex_order_type TEXT DEFAULT '',
+  postex_handling_type TEXT DEFAULT '',
+  postex_default_remarks TEXT DEFAULT '',
+  postex_pickup_display TEXT DEFAULT '',
+  postex_return_display TEXT DEFAULT '',
+  postex_return_city TEXT DEFAULT '',
+  postex_product_check TEXT DEFAULT '1',
+  postex_sku_check TEXT DEFAULT '0',
+  postex_weight_check TEXT DEFAULT '1',
+  postex_pieces_check TEXT DEFAULT '1',
+  postex_cod_check TEXT DEFAULT '0',
+  postex_notes_check TEXT DEFAULT '1',
+  postex_default_weight TEXT DEFAULT '0.5',
+  postex_default_items TEXT DEFAULT '3',
+  postex_default_product TEXT DEFAULT 'Kids Clothes',
+  postex_whatsapp_template TEXT DEFAULT 'Dear {name}, your order has been booked. You can track it here: {url}\n{note}',
+  postex_whatsapp_note TEXT DEFAULT 'Thank you for shopping with us!',
+  postex_auto_download_label BOOLEAN DEFAULT FALSE,
+
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -555,6 +583,9 @@ CREATE TABLE IF NOT EXISTS orders (
   items JSONB NOT NULL DEFAULT '[]',        -- snapshot of cart at order time
   subtotal NUMERIC(10,2) DEFAULT 0,
   total NUMERIC(10,2) DEFAULT 0,
+  discount_amount NUMERIC(10,2) DEFAULT 0,
+  shipping_amount NUMERIC(10,2) DEFAULT 0,
+  discount_code TEXT,
   status TEXT DEFAULT 'pending',            -- pending, confirmed, shipped, delivered, cancelled
   notes TEXT,
   staff_notes TEXT,

@@ -123,6 +123,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
   // Discount
   const [discountCode, setDiscountCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [coordinates, setCoordinates] = useState('');
 
   // Auto-invalidate coupon if subtotal falls below minimum amount
   useEffect(() => {
@@ -159,6 +160,20 @@ export default function CartContainer({ settings }: CartContainerProps) {
       } catch {}
     }
   }, []);
+
+  useEffect(() => {
+    if (view === 'checkout' && typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoordinates(`${position.coords.latitude},${position.coords.longitude}`);
+        },
+        (error) => {
+          console.log('Error getting coordinates:', error);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  }, [view]);
 
   // Load placed order if view is success
   // Sync contact to abandoned cart whenever checkout fields change
@@ -333,6 +348,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
         `Phone: ${phone.trim()}`,
         emailOrPhone.trim() ? `Contact: ${emailOrPhone.trim()}` : '',
         notes.trim() ? `Notes: ${notes.trim()}` : '',
+        coordinates.trim() ? `Coordinates: ${coordinates.trim()}` : '',
         `Payment Method: ${selectedPayment?.name ?? 'Cash on delivery'}`,
         volumeDiscountAmount > 0 ? `Volume Discount: -${formatPrice(volumeDiscountAmount, settings.currencySymbol)}` : '',
         couponDiscountAmount > 0 ? `Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currencySymbol)}` : ''

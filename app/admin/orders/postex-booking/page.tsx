@@ -1,0 +1,43 @@
+import React from 'react';
+import { redirect } from 'next/navigation';
+import PostExBookingManifestPage from './PostExBookingManifestPage';
+import { getSettings } from '@/lib/services/settings';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+
+export const revalidate = 0;
+
+export default async function PostExBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
+  const { id } = await searchParams;
+  if (!id) redirect('/admin/orders');
+
+  // id can be a single order id or comma-separated
+  const ids = id.split(',').filter(Boolean);
+
+  const { data: ordersRaw, error: ordersError } = await supabaseAdmin
+    .from('orders')
+    .select('id, order_number, customer_name, customer_phone, notes, total, items')
+    .in('id', ids);
+
+  if (ordersError) {
+    console.error('[PostExBooking] Supabase query failed:', ordersError);
+  }
+
+  const settings = await getSettings();
+
+  const orders = (ordersRaw ?? []).map(o => ({
+    id: o.id,
+    orderNumber: o.order_number || o.id.slice(0, 8),
+    customerName: o.customer_name || '',
+    customerPhone: o.customer_phone || '',
+    shippingAddress: o.notes || '',
+    shippingCity: '',
+    total: parseFloat(o.total?.toString() || '0'),
+    items: (o.items || []) as any[],
+  }));
+
+  return <PostExBookingManifestPage orders={orders} settings={settings} />;
+}

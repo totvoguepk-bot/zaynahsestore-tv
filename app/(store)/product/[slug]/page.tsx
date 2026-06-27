@@ -237,7 +237,7 @@ export default async function ProductPage({ params }: PageProps) {
             );
           }
           if (block === 'ticker') {
-            if (!settings.enableTicker || !settings.tickerText) return null;
+            if (!settings.productDetailEnableTicker || !settings.productDetailTickerText) return null;
             return (
               <div key="ticker" className="w-full overflow-hidden bg-gray-50 dark:bg-white/5 border-y border-gray-200 dark:border-gray-800 py-3.5 select-none relative">
                 <style>{`
@@ -258,7 +258,7 @@ export default async function ProductPage({ params }: PageProps) {
                 <div className="animate-marquee-infinite flex items-center whitespace-nowrap gap-8">
                   {[...Array(4)].map((_, loopIdx) => (
                     <div key={loopIdx} className="flex items-center gap-8">
-                      {settings.tickerText.split('\n').filter(Boolean).map((item: string, itemIdx: number) => (
+                      {settings.productDetailTickerText.split('\n').filter(Boolean).map((item: string, itemIdx: number) => (
                         <div key={itemIdx} className="flex items-center gap-8 text-sm font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">
                           <span>{item}</span>
                           <span className="text-gray-400 dark:text-gray-600 font-normal">✦</span>

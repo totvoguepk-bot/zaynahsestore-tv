@@ -54,6 +54,8 @@ interface SettingsRow {
   safe_checkout_methods?: string[] | null;
   enable_ticker?: boolean | null;
   ticker_text?: string | null;
+  product_detail_enable_ticker?: boolean | null;
+  product_detail_ticker_text?: string | null;
   enable_variant_swatches?: boolean | null;
   swatch_shape?: string | null;
   swatch_size?: string | null;
@@ -265,6 +267,29 @@ interface SettingsRow {
   abandoned_cart_email_subject?: string | null;
   abandoned_cart_email_template?: string | null;
   popular_searches?: string | null;
+  postex_enabled?: boolean | null;
+  postex_api_token?: string | null;
+  postex_mode?: string | null;
+  postex_pickup_address?: string | null;
+  postex_return_address?: string | null;
+  postex_order_type?: string | null;
+  postex_handling_type?: string | null;
+  postex_default_remarks?: string | null;
+  postex_pickup_display?: string | null;
+  postex_return_display?: string | null;
+  postex_return_city?: string | null;
+  postex_product_check?: string | null;
+  postex_sku_check?: string | null;
+  postex_weight_check?: string | null;
+  postex_pieces_check?: string | null;
+  postex_cod_check?: string | null;
+  postex_notes_check?: string | null;
+  postex_default_weight?: string | null;
+  postex_default_items?: string | null;
+  postex_default_product?: string | null;
+  postex_whatsapp_template?: string | null;
+  postex_whatsapp_note?: string | null;
+  postex_auto_download_label?: boolean | null;
 
   updated_at: string;
 }
@@ -307,6 +332,8 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   safeCheckoutMethods: row.safe_checkout_methods ?? ['visa', 'mastercard', 'paypal', 'amex', 'klarna', 'cirrus', 'westernunion'],
   enableTicker: row.enable_ticker ?? false,
   tickerText: row.ticker_text ?? 'Free returns within 30 days\nUnlimited delivery for only $175',
+  productDetailEnableTicker: row.product_detail_enable_ticker ?? false,
+  productDetailTickerText: row.product_detail_ticker_text ?? 'Free returns within 30 days\nUnlimited delivery for only $175',
   enableVariantSwatches: row.enable_variant_swatches ?? true,
   swatchShape: (row.swatch_shape as 'circle' | 'square') ?? 'circle',
   swatchSize: (row.swatch_size as 'sm' | 'md' | 'lg') ?? 'md',
@@ -520,6 +547,31 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   abandonedCartEmailTemplate: row.abandoned_cart_email_template ?? 'Hi {{name}},\n\nYou left some items in your cart. Complete your purchase here:\n{{checkout_url}}',
   popularSearches: row.popular_searches ?? 'Co-ord Sets, Sonic, Graphic Tee, T-shirt, Kids',
 
+  // PostEx courier integration
+  postex_enabled: row.postex_enabled ?? false,
+  postex_api_token: row.postex_api_token ?? '',
+  postex_mode: row.postex_mode ?? 'sandbox',
+  postex_pickup_address: row.postex_pickup_address ?? '',
+  postex_return_address: row.postex_return_address ?? '',
+  postex_order_type: row.postex_order_type ?? '',
+  postex_handling_type: row.postex_handling_type ?? '',
+  postex_default_remarks: row.postex_default_remarks ?? '',
+  postex_pickup_display: row.postex_pickup_display ?? '',
+  postex_return_display: row.postex_return_display ?? '',
+  postex_return_city: row.postex_return_city ?? '',
+  postex_product_check: row.postex_product_check ?? '1',
+  postex_sku_check: row.postex_sku_check ?? '0',
+  postex_weight_check: row.postex_weight_check ?? '1',
+  postex_pieces_check: row.postex_pieces_check ?? '1',
+  postex_cod_check: row.postex_cod_check ?? '0',
+  postex_notes_check: row.postex_notes_check ?? '1',
+  postex_default_weight: row.postex_default_weight ?? '0.5',
+  postex_default_items: row.postex_default_items ?? '3',
+  postex_default_product: row.postex_default_product ?? 'Kids Clothes',
+  postex_whatsapp_template: row.postex_whatsapp_template ?? 'Dear {name}, your order has been booked. You can track it here: {url}\n{note}',
+  postex_whatsapp_note: row.postex_whatsapp_note ?? 'Thank you for shopping with us!',
+  postex_auto_download_label: row.postex_auto_download_label ?? false,
+
   updatedAt: row.updated_at
 });
 
@@ -628,6 +680,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.safeCheckoutMethods !== undefined) updatePayload.safe_checkout_methods = settings.safeCheckoutMethods;
     if (settings.enableTicker !== undefined) updatePayload.enable_ticker = settings.enableTicker;
     if (settings.tickerText !== undefined) updatePayload.ticker_text = settings.tickerText;
+    if (settings.productDetailEnableTicker !== undefined) updatePayload.product_detail_enable_ticker = settings.productDetailEnableTicker;
+    if (settings.productDetailTickerText !== undefined) updatePayload.product_detail_ticker_text = settings.productDetailTickerText;
     if (settings.enableVariantSwatches !== undefined) updatePayload.enable_variant_swatches = settings.enableVariantSwatches;
     if (settings.swatchShape !== undefined) updatePayload.swatch_shape = settings.swatchShape;
     if (settings.swatchSize !== undefined) updatePayload.swatch_size = settings.swatchSize;
@@ -845,6 +899,29 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.abandonedCartEmailSubject !== undefined) updatePayload.abandoned_cart_email_subject = settings.abandonedCartEmailSubject;
     if (settings.abandonedCartEmailTemplate !== undefined) updatePayload.abandoned_cart_email_template = settings.abandonedCartEmailTemplate;
     if (settings.popularSearches !== undefined) updatePayload.popular_searches = settings.popularSearches;
+    if (settings.postex_enabled !== undefined) updatePayload.postex_enabled = settings.postex_enabled;
+    if (settings.postex_api_token !== undefined) updatePayload.postex_api_token = settings.postex_api_token;
+    if (settings.postex_mode !== undefined) updatePayload.postex_mode = settings.postex_mode;
+    if (settings.postex_pickup_address !== undefined) updatePayload.postex_pickup_address = settings.postex_pickup_address;
+    if (settings.postex_return_address !== undefined) updatePayload.postex_return_address = settings.postex_return_address;
+    if (settings.postex_order_type !== undefined) updatePayload.postex_order_type = settings.postex_order_type;
+    if (settings.postex_handling_type !== undefined) updatePayload.postex_handling_type = settings.postex_handling_type;
+    if (settings.postex_default_remarks !== undefined) updatePayload.postex_default_remarks = settings.postex_default_remarks;
+    if (settings.postex_pickup_display !== undefined) updatePayload.postex_pickup_display = settings.postex_pickup_display;
+    if (settings.postex_return_display !== undefined) updatePayload.postex_return_display = settings.postex_return_display;
+    if (settings.postex_return_city !== undefined) updatePayload.postex_return_city = settings.postex_return_city;
+    if (settings.postex_product_check !== undefined) updatePayload.postex_product_check = settings.postex_product_check;
+    if (settings.postex_sku_check !== undefined) updatePayload.postex_sku_check = settings.postex_sku_check;
+    if (settings.postex_weight_check !== undefined) updatePayload.postex_weight_check = settings.postex_weight_check;
+    if (settings.postex_pieces_check !== undefined) updatePayload.postex_pieces_check = settings.postex_pieces_check;
+    if (settings.postex_cod_check !== undefined) updatePayload.postex_cod_check = settings.postex_cod_check;
+    if (settings.postex_notes_check !== undefined) updatePayload.postex_notes_check = settings.postex_notes_check;
+    if (settings.postex_default_weight !== undefined) updatePayload.postex_default_weight = settings.postex_default_weight;
+    if (settings.postex_default_items !== undefined) updatePayload.postex_default_items = settings.postex_default_items;
+    if (settings.postex_default_product !== undefined) updatePayload.postex_default_product = settings.postex_default_product;
+    if (settings.postex_whatsapp_template !== undefined) updatePayload.postex_whatsapp_template = settings.postex_whatsapp_template;
+    if (settings.postex_whatsapp_note !== undefined) updatePayload.postex_whatsapp_note = settings.postex_whatsapp_note;
+    if (settings.postex_auto_download_label !== undefined) updatePayload.postex_auto_download_label = settings.postex_auto_download_label;
 
     // Use service role client for writes — bypasses RLS safely since this
     // server action is already behind Next.js middleware auth.

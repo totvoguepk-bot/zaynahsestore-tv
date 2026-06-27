@@ -4,13 +4,34 @@
 
 ---
 
-## FORMAT:
-```
-### [YYYY-MM-DD] vX.X.X — Short Title
-**Files Updated:** list of files
+### [2026-06-27] v4.9.8 — Dynamic Order Fulfillment Dropdowns, Shopify-Style Stats & Bulk Actions Bar
+**Files Updated:**
+- [components/admin/OrderDetailCanvas.tsx](file:///Users/shoaib/Documents/zaynahsestore-tv-main/components/admin/OrderDetailCanvas.tsx)
+- [components/admin/OrderLog.tsx](file:///Users/shoaib/Documents/zaynahsestore-tv-main/components/admin/OrderLog.tsx)
+
 **Changes:**
-1. What changed and why
-```
+1. **Fulfillment Dropdowns (3 Dots)**: Implemented dropdown selectors on the detail canvas items card header (`...` trigger) allowing admins to swap fulfillment status instantly ("Mark as fulfilled" or "Mark as unfulfilled") with live database updates and timeline log additions.
+2. **Shopify-Style Stats & Layout**: Redesigned the main orders log table layout to exactly mirror the provided template design.
+3. **Interactive Date Selector Dropdown**: Converted the static `"Today"` label in the stats bar into an interactive date filter dropdown supporting Today, Yesterday, Last 7 days, Last 30 days, and Custom ranges. Statistics metrics are dynamically recalculated matching the active range.
+4. **Tab Filters & Search Panel**: Integrated live tabs ("All", "Unfulfilled", "Unpaid", "Open", "Archived") and collapsible search/filter widgets.
+5. **Checkbox Bulk Selection & Actions Bar**: Added selection checkboxes per row and bulk toggle header. When selections are present, dynamically render a bulk actions panel supporting Mark as Fulfilled, Mark as Unfulfilled, Cancel, Move to Trash, and bulk Courier Booking.
+6. **Real Payment Method Columns**: Replaced hardcoded "Economy" Delivery method text and table column with real-time parsed customer Payment Methods.
+
+---
+
+### [2026-06-27] v4.9.7 — Dynamic Payment & Real Paid/Unpaid Checkout Timelines
+**Files Updated:**
+- [lib/types.ts](file:///Users/shoaib/Documents/zaynahsestore-tv-main/lib/types.ts)
+- [lib/services/orders.ts](file:///Users/shoaib/Documents/zaynahsestore-tv-main/lib/services/orders.ts)
+- [components/admin/OrderDetailCanvas.tsx](file:///Users/shoaib/Documents/zaynahsestore-tv-main/components/admin/OrderDetailCanvas.tsx)
+
+**Changes:**
+1. **StatusLogItem Types**: Added `'payment'` to `StatusLogItem` types.
+2. **Order Creation Timelines**: Programmed `createOrder` inside `orders.ts` to parse the checkout payment method from the notes text block. If the customer checked out using a pre-paid bank or digital wallet option (JazzCash, EasyPaisa, NayaPay, Bank Transfer, etc.), automatically append a highlighted payment success entry to the initial `statusLogs` timeline.
+3. **Dynamic Paid/Unpaid Badges**: Updated the admin `OrderDetailCanvas.tsx` to resolve the paid status dynamically. Render a green `"Paid"` badge if digital methods are detected, and a yellow pulsing `"Unpaid"` badge if Cash on Delivery (COD) is chosen.
+4. **Highlighted Timeline Entries**: Custom-styled the timeline payment log item inside the order detail canvas with an emerald background checkmark icon, clearly denoting the Payment Method Name and Paid Status.
+
+---
 
 ### [2026-06-22] v4.9.6 — Updated GitHub Access Token and Remote URL
 **Files Updated:**

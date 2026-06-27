@@ -102,7 +102,11 @@ export {
   FlipHorizontal,
   FlipVertical,
   Undo,
-  Sliders
+  Sliders,
+  ArrowLeft,
+  Printer,
+  MoreVertical,
+  MoreHorizontal
 } from 'lucide-react';
 
 // Custom Social Platform Icons (Consistent styling and sizes)

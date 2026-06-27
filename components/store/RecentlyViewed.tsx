@@ -22,7 +22,13 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
 
     const handleUpdate = async () => {
       try {
-        const recentStr = localStorage.getItem('recently-viewed') || '[]';
+        // Try localStorage first, fallback to sessionStorage for TikTok/Instagram in-app browsers
+        let recentStr = '[]';
+        try {
+          recentStr = localStorage.getItem('recently-viewed') || '[]';
+        } catch {
+          recentStr = sessionStorage.getItem('recently-viewed') || '[]';
+        }
         const recentIds: string[] = JSON.parse(recentStr);
 
         // Filter out current product and limit

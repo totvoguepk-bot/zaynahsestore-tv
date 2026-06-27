@@ -82,6 +82,7 @@ interface DBProductRow {
   has_variants?: boolean | null;
   is_service?: boolean | null;
   is_featured?: boolean | null;
+  is_active?: boolean | null;
   enable_swatches?: boolean | null;
   show_swatches_on_archive?: boolean | null;
   tags?: string[] | null;
@@ -199,6 +200,7 @@ const mapProduct = (row: DBProductRow): Product => {
     hasVariants: row.has_variants ?? false,
     isService: row.is_service ?? false,
     isFeatured: row.is_featured ?? false,
+    isActive: row.is_active ?? true,
     enableSwatches: row.enable_swatches ?? true,
     showSwatchesOnArchive: row.show_swatches_on_archive ?? true,
     customBadgeId: row.custom_badge_id || undefined,
@@ -480,7 +482,8 @@ const fetchProducts = async (categoryId?: string): Promise<Product[]> => {
     let query = staticSupabase
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .eq('is_active', true);
 
     if (categoryId) {
       query = query.eq('category_id', categoryId);
@@ -520,6 +523,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
         .from('products')
         .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
         .is('deleted_at', null)
+        .eq('is_active', true)
         .eq('category_id', categoryId)
         .neq('id', productId)
         .order('sort_order', { ascending: true })
@@ -539,6 +543,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
         .from('products')
         .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
         .is('deleted_at', null)
+        .eq('is_active', true)
         .not('id', 'in', `(${excludeIds.join(',')})`)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false })
@@ -575,6 +580,7 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .eq('slug', slug)
       .is('deleted_at', null)
+      .eq('is_active', true)
       .maybeSingle();
 
     if (error) {
@@ -720,6 +726,7 @@ export const createProduct = async (
         has_variants: product.hasVariants,
         is_service: product.isService,
         is_featured: product.isFeatured,
+        is_active: product.isActive ?? true,
         enable_swatches: product.enableSwatches,
         show_swatches_on_archive: product.showSwatchesOnArchive,
         custom_badge_id: product.customBadgeId || null,
@@ -850,6 +857,7 @@ export const updateProduct = async (
     if (product.hasVariants !== undefined) updatePayload.has_variants = product.hasVariants;
     if (product.isService !== undefined) updatePayload.is_service = product.isService;
     if (product.isFeatured !== undefined) updatePayload.is_featured = product.isFeatured;
+    if (product.isActive !== undefined) updatePayload.is_active = product.isActive;
     if (product.enableSwatches !== undefined) updatePayload.enable_swatches = product.enableSwatches;
     if (product.showSwatchesOnArchive !== undefined) updatePayload.show_swatches_on_archive = product.showSwatchesOnArchive;
     if (product.customBadgeId !== undefined) updatePayload.custom_badge_id = product.customBadgeId || null;
@@ -1001,6 +1009,7 @@ export const updateProductFields = async (
     if (fields.hasVariants !== undefined) updatePayload.has_variants = fields.hasVariants;
     if (fields.isService !== undefined) updatePayload.is_service = fields.isService;
     if (fields.isFeatured !== undefined) updatePayload.is_featured = fields.isFeatured;
+    if (fields.isActive !== undefined) updatePayload.is_active = fields.isActive;
     if (fields.enableSwatches !== undefined) updatePayload.enable_swatches = fields.enableSwatches;
     if (fields.showSwatchesOnArchive !== undefined) updatePayload.show_swatches_on_archive = fields.showSwatchesOnArchive;
     if (fields.customBadgeId !== undefined) updatePayload.custom_badge_id = fields.customBadgeId || null;
@@ -1191,7 +1200,8 @@ export const getProductsByCategoryId = async (categoryId: string): Promise<Produ
     let query = supabase
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .eq('is_active', true);
       
     if (junctionProductIds.length > 0) {
       query = query.or(`category_id.eq.${categoryId},id.in.(${junctionProductIds.join(',')})`);

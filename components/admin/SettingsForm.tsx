@@ -1672,6 +1672,15 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           handleDeletePayment={handleDeletePayment}
           onReorderShipping={handleReorderShipping}
           onReorderPayment={handleReorderPayment}
+          cartTimerMinutes={cartTimerMinutes}
+          setCartTimerMinutes={setCartTimerMinutes}
+          cartTimerMessage={cartTimerMessage}
+          setCartTimerMessage={setCartTimerMessage}
+          freeShippingThreshold={freeShippingThreshold}
+          setFreeShippingThreshold={setFreeShippingThreshold}
+          recentlyViewedLimit={recentlyViewedLimit}
+          setRecentlyViewedLimit={setRecentlyViewedLimit}
+          currencySymbol={currencySymbol}
         />
       )}
 
@@ -1802,6 +1811,12 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           currencySymbol={currencySymbol}
           loadingCoupons={loadingCoupons}
           coupons={coupons}
+          volumeDiscountsEnabled={volumeDiscountsEnabled}
+          setVolumeDiscountsEnabled={setVolumeDiscountsEnabled}
+          volumeDiscountThreshold={volumeDiscountThreshold}
+          setVolumeDiscountThreshold={setVolumeDiscountThreshold}
+          volumeDiscountPercentage={volumeDiscountPercentage}
+          setVolumeDiscountPercentage={setVolumeDiscountPercentage}
           handleSaveCoupon={handleSaveCoupon}
           handleEditCoupon={handleEditCoupon}
           handleDeleteCoupon={handleDeleteCoupon}

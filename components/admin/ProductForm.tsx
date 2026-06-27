@@ -71,6 +71,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const [hasVariants, setHasVariants] = useState(initialProduct?.hasVariants ?? false);
   const [isService, setIsService] = useState(initialProduct?.isService ?? false);
   const [isFeatured, setIsFeatured] = useState(initialProduct?.isFeatured ?? false);
+  const [isActive, setIsActive] = useState(initialProduct?.isActive ?? true);
   const [rating, setRating] = useState(initialProduct?.rating?.toString() || '5.0');
   const [reviewsCount, setReviewsCount] = useState(initialProduct?.reviewsCount?.toString() || '0');
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
@@ -685,6 +686,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
         hasVariants,
         isService,
         isFeatured,
+        isActive,
         enableSwatches,
         showSwatchesOnArchive,
         customBadgeId: customBadgeId || undefined,
@@ -2287,7 +2289,38 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
             {/* Status Settings */}
             <div className="bg-white dark:bg-[#16162a] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4 text-gray-900 dark:text-white transition-colors">
               <h3 className="text-base font-bold text-gray-900">Status & Options</h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Product Visibility</label>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-all select-none has-checked:bg-emerald-50 has-checked:border-emerald-300 has-checked:text-emerald-700 border-gray-200 bg-white hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="isActive"
+                        checked={isActive === true}
+                        onChange={() => setIsActive(true)}
+                        className="accent-emerald-600 h-4 w-4"
+                      />
+                      <div>
+                        <span className="text-sm font-bold text-gray-800">Active</span>
+                        <p className="text-[10px] text-gray-400 font-medium">Shows on storefront</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-all select-none has-checked:bg-red-50 has-checked:border-red-300 has-checked:text-red-700 border-gray-200 bg-white hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="isActive"
+                        checked={isActive === false}
+                        onChange={() => setIsActive(false)}
+                        className="accent-red-600 h-4 w-4"
+                      />
+                      <div>
+                        <span className="text-sm font-bold text-gray-800">Inactive</span>
+                        <p className="text-[10px] text-gray-400 font-medium">Hidden from store</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"

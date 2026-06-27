@@ -242,9 +242,9 @@ export default function PremiumTab({
   const [selectingType, setSelectingType] = useState<'exit_intent' | null>(null);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="space-y-6">
       {/* Active Features Checklist Toggle */}
-      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4 col-span-1 md:col-span-2">
+      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">Enable / Disable Premium Storefront Features</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400">Toggle individual storefront enhancements. Disabled features will be completely hidden from customers.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
@@ -278,15 +278,7 @@ export default function PremiumTab({
             <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Free Shipping Progress Bar</span>
           </label>
 
-          <label className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-850 bg-gray-50/50 dark:bg-white/5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={volumeDiscountsEnabled}
-              onChange={(e) => setVolumeDiscountsEnabled(e.target.checked)}
-              className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
-            />
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Volume Discounts Logic</span>
-          </label>
+
 
           <label className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-850 bg-gray-50/50 dark:bg-white/5 cursor-pointer select-none">
             <input
@@ -431,7 +423,7 @@ export default function PremiumTab({
       </div>
 
       {/* Header Announcement & News Bar */}
-      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4 col-span-1 md:col-span-2">
+      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">📢 Header Announcement News Bar</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400">Configure global news bar lines and store contacts displayed at the top of the header.</p>
         
@@ -894,73 +886,6 @@ export default function PremiumTab({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Urgency & Shipping Thresholds */}
-      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
-        <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">Urgency & Shipping Thresholds</h3>
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Cart Expiry Reservation Timer (Minutes)</label>
-          <input
-            type="number"
-            value={cartTimerMinutes}
-            onChange={(e) => setCartTimerMinutes(Number(e.target.value))}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Cart Expiry Message Template</label>
-          <input
-            type="text"
-            value={cartTimerMessage}
-            onChange={(e) => setCartTimerMessage(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          />
-          <p className="text-[10px] text-gray-500">Use <code>{`{timer}`}</code> as a placeholder for minutes remaining.</p>
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Free Shipping Minimum Threshold ({initialSettings.currencySymbol || 'Rs.'})</label>
-          <input
-            type="number"
-            value={freeShippingThreshold}
-            onChange={(e) => setFreeShippingThreshold(Number(e.target.value))}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Recently Viewed Limit (Products count)</label>
-          <input
-            type="number"
-            value={recentlyViewedLimit}
-            onChange={(e) => setRecentlyViewedLimit(Number(e.target.value))}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          />
-        </div>
-      </div>
-
-      {/* Volume Discounts Logic */}
-      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
-        <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">Volume Discounts Logic</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-750 dark:text-gray-300 block">Volume Threshold (items)</label>
-            <input
-              type="number"
-              value={volumeDiscountThreshold}
-              onChange={(e) => setVolumeDiscountThreshold(Number(e.target.value))}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-750 dark:text-gray-300 block">Discount Percentage (%)</label>
-            <input
-              type="number"
-              value={volumeDiscountPercentage}
-              onChange={(e) => setVolumeDiscountPercentage(Number(e.target.value))}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Recent Buyers Advanced Settings */}

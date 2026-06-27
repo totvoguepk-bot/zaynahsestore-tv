@@ -58,6 +58,7 @@ const mapClientProduct = (row: any): Product => {
     hasVariants: row.has_variants ?? false,
     isService: row.is_service ?? false,
     isFeatured: row.is_featured ?? false,
+    isActive: row.is_active ?? true,
     enableSwatches: row.enable_swatches ?? true,
     showSwatchesOnArchive: row.show_swatches_on_archive ?? true,
     customBadgeId: row.custom_badge_id || undefined,
@@ -80,7 +81,8 @@ export const getProductsClient = async (categoryId?: string): Promise<Product[]>
     let query = supabase
       .from('products')
       .select('*, product_images(*), product_variants(*), categories!category_id(*)')
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .eq('is_active', true);
 
     if (categoryId) {
       query = query.eq('category_id', categoryId);

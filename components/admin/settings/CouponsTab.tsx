@@ -21,6 +21,14 @@ interface CouponsTabProps {
   loadingCoupons: boolean;
   coupons: Coupon[];
 
+  // Volume Discounts
+  volumeDiscountsEnabled: boolean;
+  setVolumeDiscountsEnabled: (v: boolean) => void;
+  volumeDiscountThreshold: number;
+  setVolumeDiscountThreshold: (v: number) => void;
+  volumeDiscountPercentage: number;
+  setVolumeDiscountPercentage: (v: number) => void;
+
   handleSaveCoupon: (e: React.FormEvent) => void;
   handleEditCoupon: (coupon: Coupon) => void;
   handleDeleteCoupon: (id: string) => void;
@@ -42,13 +50,70 @@ export default function CouponsTab({
   currencySymbol,
   loadingCoupons,
   coupons,
+  volumeDiscountsEnabled,
+  setVolumeDiscountsEnabled,
+  volumeDiscountThreshold,
+  setVolumeDiscountThreshold,
+  volumeDiscountPercentage,
+  setVolumeDiscountPercentage,
   handleSaveCoupon,
   handleEditCoupon,
   handleDeleteCoupon
 }: CouponsTabProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* Coupon Form */}
+    <div className="grid grid-cols-1 gap-8">
+      {/* Volume Discounts Logic */}
+      <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div>
+            <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">Volume Discounts Logic</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Automatically apply a discount when a customer adds multiple items.</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={volumeDiscountsEnabled}
+              onChange={(e) => setVolumeDiscountsEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
+        {volumeDiscountsEnabled && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 animate-fade-in">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Volume Threshold (Items)</label>
+              <input
+                type="number"
+                min="1"
+                value={volumeDiscountThreshold}
+                onChange={(e) => setVolumeDiscountThreshold(Number(e.target.value))}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                placeholder="e.g. 3"
+              />
+              <p className="text-[10px] text-gray-400">Min items in cart to trigger discount.</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Discount Percentage (%)</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={volumeDiscountPercentage}
+                onChange={(e) => setVolumeDiscountPercentage(Number(e.target.value))}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                placeholder="e.g. 10"
+              />
+              <p className="text-[10px] text-gray-400">% off applied when threshold is met.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Coupon Form + List */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
       <div className="bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm col-span-1 lg:col-span-5 space-y-6">
         <div>
           <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider">
@@ -202,6 +267,7 @@ export default function CouponsTab({
             ))
           )}
         </div>
+      </div>
       </div>
     </div>
   );

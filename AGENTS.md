@@ -159,3 +159,13 @@ Jab bhi koi **purana / existing project clone kare** (already Supabase, Cloudfla
 - Har action ke baad verify karo ke kaam hua ya nahi
 - Kuch bhi delete mat karo jo pehle se kaam kar raha ho
 <!-- END:legacy-audit-rule -->
+
+<!-- BEGIN:navigation-scroll-rule -->
+# Navigation and Tab Change Scroll Rules
+
+1. Next.js does not automatically scroll nested scrollable layout containers (e.g. `<main id="admin-main-content">` inside admin dashboard) to the top on page or URL query changes (like changing setting tabs `?tab=shipping`).
+2. To prevent pages/tabs from loading scrolled down or focusing on the footer:
+   - In the admin layout, give the scrollable main container the ID `admin-main-content` and reset its scroll position (`mainEl.scrollTop = 0`) inside a `useEffect` listening to `pathname` and `searchParams` changes.
+   - In the storefront layout/navbar, reset the `window` scroll position (`window.scrollTo({ top: 0, behavior: 'instant' })`) inside a `useEffect` on pathname/searchParams changes, EXCEPT when a scroll restoration is scheduled (`store_scroll_restore` exists in sessionStorage).
+<!-- END:navigation-scroll-rule -->
+

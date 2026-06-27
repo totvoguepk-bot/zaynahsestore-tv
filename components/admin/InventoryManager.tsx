@@ -386,9 +386,19 @@ export default function InventoryManager({ products: initialProducts, categories
                               </div>
                               <div>
                                 <div className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</div>
-                                <div className="text-[10px] text-gray-400 uppercase mt-0.5 font-bold">
-                                  {product.category?.name || product.productCategories?.[0]?.category?.name || 'Uncategorized'}
-                                </div>
+                                {product.productCategories && product.productCategories.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {product.productCategories.map((pc) => pc.category ? (
+                                      <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                                        {pc.category.name}
+                                      </span>
+                                    ) : null)}
+                                  </div>
+                                ) : product.category ? (
+                                  <div className="text-[10px] text-gray-400 uppercase mt-0.5 font-bold">
+                                    {product.category.name}
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
                           </td>
@@ -720,11 +730,21 @@ export default function InventoryManager({ products: initialProducts, categories
                           </div>
                         )}
                       </div>
-                      <div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{product.name}</div>
-                        <div className="text-[10px] text-gray-400 uppercase mt-0.5 font-bold">
-                          {product.category?.name || product.productCategories?.[0]?.category?.name || 'Uncategorized'}
-                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{product.name}</div>
+                          {product.productCategories && product.productCategories.length > 0 ? (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {product.productCategories.map((pc) => pc.category ? (
+                                <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                                  {pc.category.name}
+                                </span>
+                              ) : null)}
+                            </div>
+                          ) : product.category ? (
+                            <div className="text-[10px] text-gray-400 uppercase mt-0.5 font-bold">
+                              {product.category.name}
+                            </div>
+                          ) : null}
                         {product.sku && (
                           <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 mt-0.5">
                             SKU: {product.sku}

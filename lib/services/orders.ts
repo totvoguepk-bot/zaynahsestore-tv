@@ -14,6 +14,9 @@ interface OrderRow {
   items?: unknown;
   subtotal?: string | number | null;
   total?: string | number | null;
+  discount_amount?: string | number | null;
+  shipping_amount?: string | number | null;
+  discount_code?: string | null;
   status: string;
   notes?: string | null;
   staff_notes?: string | null;
@@ -39,6 +42,9 @@ const mapOrder = (row: OrderRow): Order => ({
   items: (row.items || []) as CartItem[],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
+  discountAmount: row.discount_amount ? parseFloat(row.discount_amount.toString()) : 0,
+  shippingAmount: row.shipping_amount ? parseFloat(row.shipping_amount.toString()) : 0,
+  discountCode: row.discount_code || undefined,
   status: row.status as Order['status'],
   notes: row.notes || undefined,
   staffNotes: row.staff_notes || undefined,
@@ -185,6 +191,39 @@ export const createOrder = async (order: {
       }
     ];
 
+    // Check if the order is pre-paid (transfer/digital options selected at checkout)
+    const notesText = order.notes || '';
+    const lines = notesText.split('\n');
+    let paymentMethod = '';
+    lines.forEach(line => {
+      const l = line.toLowerCase();
+      if (l.startsWith('payment method:')) {
+        paymentMethod = line.substring('payment method:'.length).trim();
+      }
+    });
+
+    const isPaidOption = (() => {
+      const pm = paymentMethod.toLowerCase();
+      if (!pm) return false;
+      if (pm.includes('cash') || pm.includes('cod') || pm.includes('delivery')) {
+        return false;
+      }
+      if (pm.includes('transfer') || pm.includes('bank') || pm.includes('nayapay') || pm.includes('easypaisa') || pm.includes('jazzcash') || pm.includes('card') || pm.includes('online')) {
+        return true;
+      }
+      return false;
+    })();
+
+    if (isPaidOption) {
+      initialLogs.push({
+        id: crypto.randomUUID(),
+        type: 'payment',
+        message: `Payment of Rs. ${order.total.toLocaleString()} processed via ${paymentMethod}`,
+        notes: 'Status: Paid',
+        createdAt: new Date().toISOString()
+      });
+    }
+
     const { data, error } = await supabase
       .from('orders')
       .insert({
@@ -316,6 +355,12 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
 export const updateOrderDetails = async (
   id: string,
   updates: {
+    items?: CartItem[];
+    subtotal?: number;
+    total?: number;
+    discountAmount?: number;
+    shippingAmount?: number;
+    discountCode?: string;
     status?: Order['status'];
     staffNotes?: string;
     statusLogs?: StatusLogItem[];
@@ -326,6 +371,9 @@ export const updateOrderDetails = async (
     cancelReason?: string;
     refundAmount?: number;
     reviewEmailPending?: boolean;
+    customerName?: string;
+    customerPhone?: string;
+    notes?: string;
   }
 ): Promise<Order> => {
   try {
@@ -342,6 +390,12 @@ export const updateOrderDetails = async (
     const oldTracking = currentOrder?.tracking_number;
 
     const payload: any = {};
+    if (updates.items !== undefined) payload.items = updates.items;
+    if (updates.subtotal !== undefined) payload.subtotal = updates.subtotal;
+    if (updates.total !== undefined) payload.total = updates.total;
+    if (updates.discountAmount !== undefined) payload.discount_amount = updates.discountAmount;
+    if (updates.shippingAmount !== undefined) payload.shipping_amount = updates.shippingAmount;
+    if (updates.discountCode !== undefined) payload.discount_code = updates.discountCode;
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.staffNotes !== undefined) payload.staff_notes = updates.staffNotes;
     if (updates.statusLogs !== undefined) payload.status_logs = updates.statusLogs;
@@ -352,6 +406,9 @@ export const updateOrderDetails = async (
     if (updates.cancelReason !== undefined) payload.cancel_reason = updates.cancelReason;
     if (updates.refundAmount !== undefined) payload.refund_amount = updates.refundAmount;
     if (updates.reviewEmailPending !== undefined) payload.review_email_pending = updates.reviewEmailPending;
+    if (updates.customerName !== undefined) payload.customer_name = updates.customerName;
+    if (updates.customerPhone !== undefined) payload.customer_phone = updates.customerPhone;
+    if (updates.notes !== undefined) payload.notes = updates.notes;
 
     const { data, error } = await supabase
       .from('orders')
@@ -444,5 +501,45 @@ export const hardDeleteOrder = async (id: string): Promise<void> => {
   } catch (error) {
     console.error('[orders] hardDeleteOrder failed:', error);
     throw error;
+  }
+};
+
+export const getOrderById = async (id: string): Promise<Order | null> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      orderNumber: data.order_number,
+      customerName: data.customer_name || undefined,
+      customerPhone: data.customer_phone || undefined,
+      customerId: data.customer_id || undefined,
+      items: (data.items || []) as CartItem[],
+      subtotal: data.subtotal ? parseFloat(data.subtotal.toString()) : 0,
+      total: data.total ? parseFloat(data.total.toString()) : 0,
+      status: data.status as Order['status'],
+      notes: data.notes || undefined,
+      staffNotes: data.staff_notes || undefined,
+      statusLogs: (data.status_logs || []) as StatusLogItem[],
+      reviewEmailPending: data.review_email_pending ?? false,
+      deliveredAt: data.delivered_at || undefined,
+      trackingNumber: data.tracking_number || undefined,
+      courierName: data.courier_name || undefined,
+      trackingUrl: data.tracking_url || undefined,
+      cancelReason: data.cancel_reason || undefined,
+      refundAmount: data.refund_amount ? parseFloat(data.refund_amount.toString()) : undefined,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  } catch (error) {
+    console.error('[orders] getOrderById failed:', error);
+    return null;
   }
 };

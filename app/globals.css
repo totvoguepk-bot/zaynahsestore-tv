@@ -22,7 +22,7 @@
   --color-text-muted: var(--text-muted);
   --color-border: var(--border);
   --color-border-dark: var(--border-dark);
-  
+
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
@@ -34,58 +34,76 @@
 }
 
 :root {
-  --primary:        #16a34a;
-  --primary-hover:  #15803d;
-  --primary-light:  #dcfce7;
-  --secondary:      #1a1a2e;
-  --secondary-hover:#16213e;
-  --accent:         #e94560;
-  --accent-hover:   #c73652;
-  --accent-light:   #fce7eb;
-  --surface:        #ffffff;
-  --surface-2:      #f8f8f8;
-  --surface-3:      #f1f1f1;
-  --text:           #1a1a1a;
-  --text-muted:     #6b7280;
-  --border:         #e5e7eb;
-  --border-dark:    #d1d5db;
-  --radius-btn:     12px;
-  --radius-card:    16px;
-  --radius-modal:   20px;
-  
-  --success:        #10b981;
-  --warning:        #f59e0b;
-  --error:          #ef4444;
-  --whatsapp:       #25D366;
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --primary-light: #dcfce7;
+  --secondary: #1a1a2e;
+  --secondary-hover: #16213e;
+  --accent: #e94560;
+  --accent-hover: #c73652;
+  --accent-light: #fce7eb;
+  --surface: #ffffff;
+  --surface-2: #f8f8f8;
+  --surface-3: #f1f1f1;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --border-dark: #d1d5db;
+  --radius-btn: 12px;
+  --radius-card: 16px;
+  --radius-modal: 20px;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --whatsapp: #25D366;
 }
 
 .dark {
-  --primary:        #22c55e;
-  --primary-hover:  #16a34a;
-  --primary-light:  #052e16;
-  --secondary:      #0f172a;
-  --secondary-hover:#1e293b;
-  --accent:         #fb7185;
-  --accent-hover:   #e11d48;
-  --accent-light:   #4c0519;
-  --surface:        #0f0f0f;
-  --surface-2:      #1a1a1a;
-  --surface-3:      #262626;
-  --text:           #f5f5f5;
-  --text-muted:     #a1a1aa;
-  --border:         #27272a;
-  --border-dark:    #3f3f46;
+  --primary: #22c55e;
+  --primary-hover: #16a34a;
+  --primary-light: #052e16;
+  --secondary: #0f172a;
+  --secondary-hover: #1e293b;
+  --accent: #fb7185;
+  --accent-hover: #e11d48;
+  --accent-light: #4c0519;
+  --surface: #0f0f0f;
+  --surface-2: #1a1a1a;
+  --surface-3: #262626;
+  --text: #f5f5f5;
+  --text-muted: #a1a1aa;
+  --border: #27272a;
+  --border-dark: #3f3f46;
 }
 
 /* Typography Scale */
-h1 { @apply font-heading text-3xl font-bold tracking-tight; }
-h2 { @apply font-heading text-2xl font-bold tracking-tight; }
-h3 { @apply font-heading text-xl font-semibold; }
-h4 { @apply font-heading text-lg font-semibold; }
-p  { @apply font-body text-base leading-relaxed; }
+h1 {
+  @apply font-heading text-3xl font-bold tracking-tight;
+}
+
+h2 {
+  @apply font-heading text-2xl font-bold tracking-tight;
+}
+
+h3 {
+  @apply font-heading text-xl font-semibold;
+}
+
+h4 {
+  @apply font-heading text-lg font-semibold;
+}
+
+p {
+  @apply font-body text-base leading-relaxed;
+}
 
 /* Targeted transitions — do NOT use * {} global rule as it destroys scroll perf */
-a, button, [role="button"] { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease; }
+a,
+button,
+[role="button"] {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-none::-webkit-scrollbar {
@@ -94,8 +112,10 @@ a, button, [role="button"] { transition: color 0.15s ease, background-color 0.15
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-none {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* ============================================================
@@ -110,9 +130,12 @@ input[type="password"],
 input[type="tel"],
 select,
 textarea {
-  color: #111827 !important; /* Force high contrast dark text in light mode */
-  border-color: #d1d5db !important; /* border-gray-300 for visible outlines */
-  background-color: rgba(249, 250, 251, 0.8) !important; /* bg-gray-50/80 */
+  color: #111827 !important;
+  /* Force high contrast dark text in light mode */
+  border-color: #d1d5db !important;
+  /* border-gray-300 for visible outlines */
+  background-color: rgba(249, 250, 251, 0.8) !important;
+  /* bg-gray-50/80 */
 }
 
 /* Focus styles */
@@ -127,7 +150,8 @@ textarea:focus {
 /* Accessible placeholder contrast */
 input::placeholder,
 textarea::placeholder {
-  color: #6b7280 !important; /* gray-500 */
+  color: #6b7280 !important;
+  /* gray-500 */
   opacity: 1 !important;
 }
 
@@ -163,7 +187,8 @@ textarea::placeholder {
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #a1a1aa !important; /* zinc-400 */
+  color: #a1a1aa !important;
+  /* zinc-400 */
 }
 
 /* Force dark-mode dropdown options background */
@@ -258,6 +283,7 @@ textarea::placeholder {
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -289,15 +315,20 @@ input[type="button"]:not(:disabled):active {
 }
 
 @keyframes bounce-bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1) translateY(0) !important;
   }
+
   30% {
     transform: scale(0.85) translateY(4px) !important;
   }
+
   60% {
     transform: scale(1.25) translateY(-5px) !important;
   }
+
   80% {
     transform: scale(0.95) translateY(1px) !important;
   }
@@ -320,10 +351,19 @@ video::-webkit-media-controls {
 
 /* Scroll restoration highlight pulse */
 @keyframes restore-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(233,69,96,0.45); }
-  60%  { box-shadow: 0 0 0 10px rgba(233,69,96,0); }
-  100% { box-shadow: 0 0 0 0 rgba(233,69,96,0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.45);
+  }
+
+  60% {
+    box-shadow: 0 0 0 10px rgba(233, 69, 96, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 69, 96, 0);
+  }
 }
+
 .scroll-restore-highlight {
   animation: restore-pulse 1.2s ease-out;
   outline: none;

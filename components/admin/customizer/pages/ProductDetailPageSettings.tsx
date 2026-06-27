@@ -253,21 +253,21 @@ export default function ProductDetailPageSettings({
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.enableTicker}
-              onChange={(e) => onUpdateSettings({ enableTicker: e.target.checked })}
+              checked={settings.productDetailEnableTicker}
+              onChange={(e) => onUpdateSettings({ productDetailEnableTicker: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
 
-        {settings.enableTicker && (
+        {settings.productDetailEnableTicker && (
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Ticker Lines (One per line)</label>
             <textarea
               rows={4}
-              value={settings.tickerText || ''}
-              onChange={(e) => onUpdateSettings({ tickerText: e.target.value })}
+              value={settings.productDetailTickerText || ''}
+              onChange={(e) => onUpdateSettings({ productDetailTickerText: e.target.value })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
               placeholder="Free returns within 30 days&#10;Unlimited delivery for only Rs. 175"
             />

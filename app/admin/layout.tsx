@@ -67,6 +67,14 @@ function AdminLayoutContent({
     setClientSearch(window.location.search || '');
   }, [pathname, searchParams]);
 
+  // Reset admin content scroll position to top on page or tab changes
+  useEffect(() => {
+    const mainEl = document.getElementById('admin-main-content');
+    if (mainEl) {
+      mainEl.scrollTop = 0;
+    }
+  }, [pathname, searchParams]);
+
   // 🔔 Real-time order notifications (sound + browser notification)
   useOrderNotification();
 
@@ -203,6 +211,7 @@ function AdminLayoutContent({
         { label: 'Footer & Social', href: '/admin/settings?tab=footer', icon: Globe },
         { label: 'Shipping & Pay', href: '/admin/settings?tab=shipping', icon: Truck },
         { label: 'Premium', href: '/admin/settings?tab=premium', icon: Award },
+        { label: 'Courier Manager', href: '/admin/settings/courier', icon: Truck },
         { label: 'Coupons', href: '/admin/settings?tab=coupons', icon: CreditCard },
         { label: 'Pixels & SEO', href: '/admin/settings?tab=pixels', icon: Globe },
         { label: 'AI Settings', href: '/admin/settings?tab=ai_settings', icon: Zap },
@@ -444,7 +453,7 @@ function AdminLayoutContent({
           </div>
         </header>
 
-        <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200">
+        <main id="admin-main-content" className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200">
           {children}
         </main>
       </div>

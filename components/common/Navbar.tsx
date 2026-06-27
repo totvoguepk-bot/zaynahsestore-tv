@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ShoppingCart, LayoutDashboard, Search, X, Heart, ChevronDown, ChevronRight, User, HelpCircle, RefreshCw, Shield, Star } from '@/components/common/Icons';
 import { useCart } from '@/lib/hooks/useCart';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -27,6 +27,7 @@ export default function Navbar({
 }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const totalItems = useCart((state) => state.totalItems());
   const isAdmin = pathname?.startsWith('/admin') && pathname !== '/admin/settings/customizer/preview';
 
@@ -239,9 +240,16 @@ export default function Navbar({
   }, [searchOpen, setSearchOpen]);
 
   // Reset search query on pathname change to prevent stale search results on page transitions
+  // Also scroll window to top on path/query changes (except when scroll restoration is scheduled)
   useEffect(() => {
     setSearchQuery('');
-  }, [pathname, setSearchQuery]);
+    if (typeof window !== 'undefined') {
+      const hasSavedScroll = sessionStorage.getItem('store_scroll_restore');
+      if (!hasSavedScroll) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    }
+  }, [pathname, searchParams, setSearchQuery]);
 
   // Helper renderers for dynamic alignment
   const customTextColorStyle = headerTextColor !== '#1a1a2e' ? { color: headerTextColor } : {};
@@ -447,8 +455,8 @@ export default function Navbar({
               <Link
                 href={item.url}
                 className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap relative group/item ${isOpen
-                    ? 'text-[#e94560] bg-gray-50 dark:bg-white/5'
-                    : 'text-gray-700 dark:text-gray-200 hover:text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'text-[#e94560] bg-gray-50 dark:bg-white/5'
+                  : 'text-gray-700 dark:text-gray-200 hover:text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5'
                   }`}
                 style={customTextColorStyle}
               >
@@ -682,7 +690,7 @@ export default function Navbar({
             window.parent.postMessage({ type: 'select_global_tab', subTab: 'header' }, '*');
           }
         }}
-        className={`${stickyClass} z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0f0f1b]/85 backdrop-blur-md transition-colors duration-200 ${isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
+        className={`${stickyClass} z-[100] w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0f0f1b]/85 backdrop-blur-md transition-colors duration-200 ${isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
           }`}
         style={{
           backgroundColor: headerBg !== '#ffffff' ? headerBg : undefined,
@@ -901,37 +909,54 @@ export default function Navbar({
             </div>
 
             {/* Search Input field */}
-            <div className="relative mb-4">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
+            <div className="relative mb-4 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setShowSuggestions(false);
+                      setSearchOpen(false);
+                      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
+                    }
+                  }}
+                  placeholder="Type name, category, color, size, sku..."
+                  className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/90 dark:bg-[#0f0f1b] py-3.5 pl-12 pr-12 text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none focus:ring-4 focus:ring-[#e94560]/10 transition-all duration-200"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (searchQuery.trim()) {
                     setShowSuggestions(false);
                     setSearchOpen(false);
                     router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
                   }
                 }}
-                placeholder="Type name, category, color, size, sku..."
-                className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] py-3.5 pl-12 pr-12 text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none focus:ring-4 focus:ring-[#e94560]/10 transition-all duration-200"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+                className="rounded-2xl bg-[#e94560] hover:bg-[#d8344f] px-5 flex items-center justify-center text-white transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+                title="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
             </div>
+
             {/* Popular Searches when empty */}
             {searchQuery.trim().length === 0 && (
               <div className="space-y-3 pt-2">

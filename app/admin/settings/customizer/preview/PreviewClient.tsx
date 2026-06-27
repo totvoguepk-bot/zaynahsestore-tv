@@ -654,7 +654,7 @@ export default function PreviewClient({
                 );
               }
               if (block === 'ticker') {
-                if (!settings.enableTicker || !settings.tickerText) return null;
+                if (!settings.productDetailEnableTicker || !settings.productDetailTickerText) return null;
                 return (
                   <div
                     key="ticker"
@@ -683,7 +683,7 @@ export default function PreviewClient({
                     <div className="animate-marquee-infinite flex items-center whitespace-nowrap gap-8">
                       {[...Array(4)].map((_, loopIdx) => (
                         <div key={loopIdx} className="flex items-center gap-8">
-                          {settings.tickerText.split('\n').filter(Boolean).map((item, itemIdx) => (
+                          {settings.productDetailTickerText.split('\n').filter(Boolean).map((item, itemIdx) => (
                             <div key={itemIdx} className="flex items-center gap-8 text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
                               <span>{item}</span>
                               <span className="text-gray-400 dark:text-gray-600 font-normal">✦</span>
