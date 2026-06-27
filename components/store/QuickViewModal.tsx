@@ -309,6 +309,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     onChangeSelectedVariant={applyVariant}
                     enableSwatches={product.enableSwatches}
                     settings={settings}
+                    variationOrder={product.variationOrder}
                   />
                 </div>
               )}

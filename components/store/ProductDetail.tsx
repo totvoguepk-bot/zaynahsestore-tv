@@ -896,6 +896,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                   onChangeSelectedVariant={handleVariantChange}
                   enableSwatches={product.enableSwatches}
                   settings={settings}
+                  variationOrder={product.variationOrder}
                 />
               </div>
             )}
