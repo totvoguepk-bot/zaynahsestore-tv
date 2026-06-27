@@ -12,6 +12,7 @@ interface ManifestOrder {
   customerPhone: string;
   shippingAddress: string;
   shippingCity: string;
+  notes: string;
   total: number;
   items: any[];
 }

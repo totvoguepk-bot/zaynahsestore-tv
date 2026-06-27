@@ -14,6 +14,7 @@ interface ManifestOrder {
   customerPhone: string;
   shippingAddress: string;
   shippingCity: string;
+  notes: string;
   total: number;
   items: any[];
 }
@@ -312,7 +313,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
 
       // Payment method from order notes
       let paymentMethod = 'Cash on delivery';
-      const noteLines = (o.shippingAddress || '').split('\n');
+      const noteLines = (o.notes || '').split('\n');
       noteLines.forEach(line => {
         const lower = line.toLowerCase().trim();
         if (lower.startsWith('payment method:')) {

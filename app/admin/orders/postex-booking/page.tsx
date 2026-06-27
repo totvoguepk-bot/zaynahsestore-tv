@@ -28,16 +28,35 @@ export default async function PostExBookingPage({
 
   const settings = await getSettings();
 
-  const orders = (ordersRaw ?? []).map(o => ({
-    id: o.id,
-    orderNumber: o.order_number || o.id.slice(0, 8),
-    customerName: o.customer_name || '',
-    customerPhone: o.customer_phone || '',
-    shippingAddress: o.notes || '',
-    shippingCity: '',
-    total: parseFloat(o.total?.toString() || '0'),
-    items: (o.items || []) as any[],
-  }));
+  const orders = (ordersRaw ?? []).map(o => {
+    const notes = o.notes || '';
+    let address = '', aptSuite = '', city = '';
+
+    (notes || '').split('\n').forEach((line: string) => {
+      const lower = line.toLowerCase().trim();
+      if (lower.startsWith('address:')) {
+        address = line.substring('address:'.length).trim();
+      } else if (lower.startsWith('apt/suite:') || lower.startsWith('apt:')) {
+        aptSuite = line.substring(line.indexOf(':') + 1).trim();
+      } else if (lower.startsWith('city:')) {
+        city = line.substring('city:'.length).trim();
+      }
+    });
+
+    const fullAddress = [address, aptSuite].filter(Boolean).join(', ');
+
+    return {
+      id: o.id,
+      orderNumber: o.order_number || o.id.slice(0, 8),
+      customerName: o.customer_name || '',
+      customerPhone: o.customer_phone || '',
+      shippingAddress: fullAddress,
+      shippingCity: city,
+      notes: notes,
+      total: parseFloat(o.total?.toString() || '0'),
+      items: (o.items || []) as any[],
+    };
+  });
 
   return <PostExBookingManifestPage orders={orders} settings={settings} />;
 }
