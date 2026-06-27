@@ -1,7 +1,7 @@
 -- ============================================================
 -- ZAYNAHS E-STORE — SUPER MASTER SCHEMA
 -- Version: 2.1.0
--- Updated: 2026-06-25
+-- Updated: 2026-06-27
 -- ============================================================
 
 -- Enable UUID extension
@@ -189,7 +189,9 @@ CREATE INDEX IF NOT EXISTS idx_social_proof_active ON social_proof (active);
 CREATE INDEX IF NOT EXISTS idx_social_proof_sort ON social_proof (sort_order);
 
 ALTER TABLE social_proof ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read active social proof" ON social_proof;
 CREATE POLICY "Public read active social proof" ON social_proof FOR SELECT USING (active = true AND deleted_at IS NULL);
+DROP POLICY IF EXISTS "Admin all social proof" ON social_proof;
 CREATE POLICY "Admin all social proof" ON social_proof FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -207,7 +209,9 @@ CREATE INDEX IF NOT EXISTS idx_spp_social_proof ON social_proof_products (social
 CREATE INDEX IF NOT EXISTS idx_spp_product ON social_proof_products (product_id);
 
 ALTER TABLE social_proof_products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read social_proof_products" ON social_proof_products;
 CREATE POLICY "Public read social_proof_products" ON social_proof_products FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin all social_proof_products" ON social_proof_products;
 CREATE POLICY "Admin all social_proof_products" ON social_proof_products FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -608,12 +612,13 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
 
 CREATE OR REPLACE FUNCTION generate_order_number()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER SECURITY DEFINER AS $$
 DECLARE
   prefix TEXT;
   seq_val INTEGER;
+  settings_id UUID;
 BEGIN
-  SELECT order_prefix, next_order_sequence INTO prefix, seq_val FROM store_settings LIMIT 1;
+  SELECT id, order_prefix, next_order_sequence INTO settings_id, prefix, seq_val FROM store_settings FOR UPDATE;
   IF prefix IS NULL OR prefix = '' THEN
     prefix := 'ZE-';
   END IF;
@@ -621,7 +626,7 @@ BEGIN
     seq_val := 1;
   END IF;
   NEW.order_number := prefix || LPAD(seq_val::TEXT, 4, '0');
-  UPDATE store_settings SET next_order_sequence = seq_val + 1;
+  UPDATE store_settings SET next_order_sequence = seq_val + 1 WHERE id = settings_id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -681,30 +686,53 @@ ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 
 -- PUBLIC READ (customers can read products)
+DROP POLICY IF EXISTS "Public read categories" ON categories;
 CREATE POLICY "Public read categories" ON categories FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Public read products" ON products;
 CREATE POLICY "Public read products" ON products FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public read product_images" ON product_images;
 CREATE POLICY "Public read product_images" ON product_images FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public read product_variants" ON product_variants;
 CREATE POLICY "Public read product_variants" ON product_variants FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Public read product_modifiers" ON product_modifiers;
 CREATE POLICY "Public read product_modifiers" ON product_modifiers FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Public read store_settings" ON store_settings;
 CREATE POLICY "Public read store_settings" ON store_settings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public read approved reviews" ON reviews;
 CREATE POLICY "Public read approved reviews" ON reviews FOR SELECT USING (approved = true);
+DROP POLICY IF EXISTS "Public insert reviews" ON reviews;
 CREATE POLICY "Public insert reviews" ON reviews FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public read badges" ON badges;
 CREATE POLICY "Public read badges" ON badges FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert customers" ON customers;
 CREATE POLICY "Public insert customers" ON customers FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public read customers" ON customers;
 CREATE POLICY "Public read customers" ON customers FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert orders" ON orders;
 CREATE POLICY "Public insert orders" ON orders FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public select orders" ON orders;
 CREATE POLICY "Public select orders" ON orders FOR SELECT USING (true);
 
 -- ADMIN FULL ACCESS (authenticated users = admin)
+DROP POLICY IF EXISTS "Admin all categories" ON categories;
 CREATE POLICY "Admin all categories" ON categories FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all products" ON products;
 CREATE POLICY "Admin all products" ON products FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all product_images" ON product_images;
 CREATE POLICY "Admin all product_images" ON product_images FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all product_variants" ON product_variants;
 CREATE POLICY "Admin all product_variants" ON product_variants FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all product_modifiers" ON product_modifiers;
 CREATE POLICY "Admin all product_modifiers" ON product_modifiers FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all store_settings" ON store_settings;
 CREATE POLICY "Admin all store_settings" ON store_settings FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all orders" ON orders;
 CREATE POLICY "Admin all orders" ON orders FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all reviews" ON reviews;
 CREATE POLICY "Admin all reviews" ON reviews FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all badges" ON badges;
 CREATE POLICY "Admin all badges" ON badges FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all customers" ON customers;
 CREATE POLICY "Admin all customers" ON customers FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -745,7 +773,9 @@ CREATE TABLE IF NOT EXISTS shipping_methods (
 
 ALTER TABLE shipping_methods ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read shipping_methods" ON shipping_methods;
 CREATE POLICY "Public read shipping_methods" ON shipping_methods FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Admin all shipping_methods" ON shipping_methods;
 CREATE POLICY "Admin all shipping_methods" ON shipping_methods FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -763,7 +793,9 @@ CREATE TABLE IF NOT EXISTS payment_methods (
 
 ALTER TABLE payment_methods ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read payment_methods" ON payment_methods;
 CREATE POLICY "Public read payment_methods" ON payment_methods FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Admin all payment_methods" ON payment_methods;
 CREATE POLICY "Admin all payment_methods" ON payment_methods FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -781,7 +813,9 @@ CREATE TABLE IF NOT EXISTS size_guides (
 
 ALTER TABLE size_guides ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read size guides" ON size_guides;
 CREATE POLICY "Public read size guides" ON size_guides FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin all size guides" ON size_guides;
 CREATE POLICY "Admin all size guides" ON size_guides FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
@@ -800,7 +834,9 @@ CREATE TABLE IF NOT EXISTS coupons (
 
 ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read coupons" ON coupons;
 CREATE POLICY "Public read coupons" ON coupons FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Admin all coupons" ON coupons;
 CREATE POLICY "Admin all coupons" ON coupons FOR ALL USING (auth.role() = 'authenticated');
 
 DROP TRIGGER IF EXISTS update_coupons_updated_at ON coupons;

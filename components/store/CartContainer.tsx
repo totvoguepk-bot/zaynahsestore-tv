@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import PaymentBadges from '@/components/common/PaymentBadges';
 import { validateCouponCode } from '@/lib/services/coupons';
 import { useAbandonedCartTracker } from '@/lib/hooks/useAbandonedCartTracker';
+import { createClient } from '@/lib/supabase/client';
 
 
 
@@ -224,11 +225,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
   useEffect(() => {
     async function fetchMethods() {
       try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
+        const supabase = createClient();
         
         // 1. Fetch shipping
         try {

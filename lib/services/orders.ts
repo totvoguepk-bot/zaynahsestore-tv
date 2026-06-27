@@ -75,8 +75,11 @@ export const createOrder = async (order: {
     const session = await getCustomerSession();
     let customerId = session ? session.id : null;
 
+    console.log('[orders] Step 1: customerId resolved to', customerId);
+
     // Auto-create/lookup guest customer record if phone is provided and they aren't logged in
     if (!customerId && (order.customerPhone || order.customerEmail)) {
+      console.log('[orders] Step 2: looking up or creating customer');
       try {
         let existingCustomer = null;
 
@@ -253,7 +256,8 @@ export const createOrder = async (order: {
 
     return mapped;
   } catch (error) {
-    console.error('[orders] createOrder failed:', error);
+    console.error('[orders] createOrder failed:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    console.error('[orders] createOrder failed raw:', error);
     throw error;
   }
 };
