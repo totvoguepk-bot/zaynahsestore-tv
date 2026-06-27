@@ -1375,7 +1375,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
   return (
     <div
-      className={`space-y-6 w-full relative ${mode === 'library' ? 'p-4 md:p-6 max-w-7xl mx-auto' : 'p-6 overflow-y-auto flex-1'}`}
+      className={`w-full relative ${mode === 'library' ? 'space-y-6 p-4 md:p-6 max-w-7xl mx-auto' : 'flex flex-col flex-1 overflow-hidden'}`}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -1500,6 +1500,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       {/* ── LIBRARY TAB CONTROLS ───────────────────────────────────────── */}
       {(mode === 'library' && mainTab === 'library') || mode === 'selector' ? (
         <>
+          <div className={mode === 'selector' ? 'flex-1 overflow-y-auto px-6 pt-6 space-y-6' : 'contents'}>
           {/* Vision AI + Select All bar */}
           {mode === 'library' && (
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -1705,12 +1706,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             />
           )}
 
+          </div>
           {/* Selector Footer */}
           {mode === 'selector' && (
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-2xl">
+            <div className="flex-none px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-[#FEFBF1] dark:bg-gray-900/20 z-10">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancel</button>
               <button type="button" onClick={handleConfirmSelection} disabled={selectedLibraryUrls.size === 0}
-                className="px-5 py-2 rounded-xl text-sm font-bold bg-[#1a1a2e] dark:bg-[#e94560] hover:bg-[#2e2e4e] dark:hover:bg-[#d8344e] text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                className="px-5 py-2 rounded-xl text-sm font-bold min-w-[140px] bg-[#1a1a2e] dark:bg-[#e94560] hover:bg-[#2e2e4e] dark:hover:bg-[#d8344e] text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
                 Add Selected ({selectedLibraryUrls.size})
               </button>
             </div>
