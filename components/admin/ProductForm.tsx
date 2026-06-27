@@ -547,9 +547,13 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   };
 
 
-  // Generate Variants — cross-product of all axes
+  // Helper: build a label from a variant object for matching
+  const variantLabel = (v: any) => [v.color, v.size, v.material, v.customValue].filter(Boolean).join(' / ');
+
+  // Generate Variants — cross-product of all axes, preserves existing custom data
   const handleGenerateVariants = () => {
     const basePrice = parseFloat(price) || 0;
+    const baseCompare = comparePrice ? parseFloat(comparePrice) : undefined;
 
     // Collect all axes that have values
     const activeAxes = variantAxes.filter(a => a.values.length > 0);
@@ -570,7 +574,22 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       combinations.splice(0, combinations.length, ...newCombinations);
     }
 
-    const newVariants: Omit<ProductVariant, 'id' | 'productId'>[] = combinations.map((combo, idx) => {
+    // Build a lookup map of existing variants by label for preservation
+    const existingByLabel = new Map<string, Omit<ProductVariant, 'id' | 'productId'>>();
+    for (const v of variants) {
+      existingByLabel.set(variantLabel(v), v);
+    }
+
+    const mergedVariants: Omit<ProductVariant, 'id' | 'productId'>[] = combinations.map((combo, idx) => {
+      const label = variantLabel(combo);
+
+      // If this exact variant already exists, preserve it entirely
+      const existing = existingByLabel.get(label);
+      if (existing) {
+        return { ...existing, sortOrder: idx };
+      }
+
+      // New variant — apply global defaults
       const colorLabel = combo['color'];
       const colorAxis = variantAxes.find(a => a.type === 'color');
       const colorVal = colorAxis?.values.find(v => v.label === colorLabel);
@@ -584,14 +603,20 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
         showImageSwatch: colorVal?.showImageSwatch || false,
         stock: 10,
         price: basePrice,
+        comparePrice: baseCompare,
         active: true,
         sortOrder: idx
       };
     });
 
-    setVariants(newVariants);
-    setSelectedVariantIndices([]); // Clear selection when new combinations are generated
-    toast.success(`Generated ${newVariants.length} variant${newVariants.length !== 1 ? 's' : ''}!`);
+    const preservedCount = combinations.length - mergedVariants.filter(v => {
+      const label = variantLabel(v);
+      return !existingByLabel.has(label);
+    }).length;
+
+    setVariants(mergedVariants);
+    setSelectedVariantIndices([]);
+    toast.success(`Generated ${mergedVariants.length} variant${mergedVariants.length !== 1 ? 's' : ''}! (${preservedCount} existing preserved)`);
   };
 
   // Update variant row
@@ -611,6 +636,11 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const handleBulkUpdatePrice = (priceVal: number) => {
     setVariants(prev => prev.map((v, i) => selectedVariantIndices.includes(i) ? { ...v, price: priceVal } : v));
     toast.success(`Updated price to Rs. ${priceVal} for ${selectedVariantIndices.length} variants`);
+  };
+
+  const handleBulkUpdateComparePrice = (compareVal: number) => {
+    setVariants(prev => prev.map((v, i) => selectedVariantIndices.includes(i) ? { ...v, comparePrice: compareVal } : v));
+    toast.success(`Updated compare price to Rs. ${compareVal} for ${selectedVariantIndices.length} variants`);
   };
 
   const handleBulkUpdateStock = (stockVal: number) => {
@@ -1719,8 +1749,8 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                         </button>
                       </div>
 
-                      {/* Inputs Row - Grid: stacks on mobile (1 col), 5 cols on large screens */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {/* Inputs Row - Grid: stacks on mobile (1 col), 6 cols on large screens */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         {/* Price */}
                         <div>
                           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
@@ -1751,6 +1781,46 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                                 const val = parseFloat(input?.value);
                                 if (!isNaN(val)) {
                                   handleBulkUpdatePrice(val);
+                                  input.value = '';
+                                }
+                              }}
+                              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Compare Price */}
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
+                            Compare Price
+                          </label>
+                          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+                            <input
+                              id="bulk-compare-price-input"
+                              type="number"
+                              placeholder="Enter compare price"
+                              style={{ borderWidth: 0 }}
+                              className="w-full min-w-0 bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const val = parseFloat((e.currentTarget as HTMLInputElement).value);
+                                  if (!isNaN(val)) {
+                                    handleBulkUpdateComparePrice(val);
+                                    (e.currentTarget as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById('bulk-compare-price-input') as HTMLInputElement;
+                                const val = parseFloat(input?.value);
+                                if (!isNaN(val)) {
+                                  handleBulkUpdateComparePrice(val);
                                   input.value = '';
                                 }
                               }}
@@ -1925,8 +1995,9 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                             </th>
                             <th className="py-3 px-3 w-[21%]">Variant</th>
                             <th className="py-3 px-3 w-[10%]">Color</th>
-                            <th className="py-3 px-3 w-[14%]">Price</th>
-                            <th className="py-3 px-3 w-[11%]">Stock *</th>
+                            <th className="py-3 px-3 w-[11%]">Price</th>
+                            <th className="py-3 px-3 w-[11%]">Compare</th>
+                            <th className="py-3 px-3 w-[10%]">Stock *</th>
                             <th className="py-3 px-3 w-[13%]">Threshold</th>
                             <th className="py-3 px-3 w-[16%]">SKU</th>
                             <th className="py-3 px-3 w-[10%] text-center">Active</th>
@@ -1981,6 +2052,17 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                                       value={variant.price || ''}
                                       placeholder={price}
                                       onChange={(e) => handleUpdateVariant(idx, { price: parseFloat(e.target.value) || undefined })}
+                                      className="w-20 rounded-md border border-gray-200 dark:border-gray-700 dark:bg-[#0f0f1b]/80 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#e94560] focus:ring-1 focus:ring-[#e94560]/20 transition-all"
+                                    />
+                                  </div>
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <div className="flex items-center min-h-[28px]">
+                                    <input
+                                      type="number"
+                                      value={variant.comparePrice || ''}
+                                      placeholder={comparePrice || '0'}
+                                      onChange={(e) => handleUpdateVariant(idx, { comparePrice: parseFloat(e.target.value) || undefined })}
                                       className="w-20 rounded-md border border-gray-200 dark:border-gray-700 dark:bg-[#0f0f1b]/80 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#e94560] focus:ring-1 focus:ring-[#e94560]/20 transition-all"
                                     />
                                   </div>
@@ -2100,6 +2182,16 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                                   value={variant.price || ''}
                                   placeholder={price}
                                   onChange={(e) => handleUpdateVariant(idx, { price: parseFloat(e.target.value) || undefined })}
+                                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-[#0f0f1b] px-3 py-2 font-semibold text-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Compare</label>
+                                <input
+                                  type="number"
+                                  value={variant.comparePrice || ''}
+                                  placeholder={comparePrice || '0'}
+                                  onChange={(e) => handleUpdateVariant(idx, { comparePrice: parseFloat(e.target.value) || undefined })}
                                   className="w-full rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-[#0f0f1b] px-3 py-2 font-semibold text-xs"
                                 />
                               </div>
