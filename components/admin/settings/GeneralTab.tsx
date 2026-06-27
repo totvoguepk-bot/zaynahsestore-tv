@@ -150,7 +150,6 @@ export default function GeneralTab({
               className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
               placeholder="TV-"
             />
-            <p className="mt-1 text-xs text-gray-400">e.g. <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-gray-600 dark:text-gray-300">TV-0001</code> or <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-gray-600 dark:text-gray-300">ZE-001</code></p>
           </div>
 
           <div>
@@ -162,7 +161,15 @@ export default function GeneralTab({
               className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
               min="1"
             />
-            <p className="mt-1 text-xs text-gray-400">Auto-increments after each order. System will zero-pad (e.g. 1 → 0001).</p>
+          </div>
+
+          <div className="pt-1">
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100/70 dark:bg-[#0f0f1b]/70 border border-gray-200 dark:border-gray-800">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Preview:</span>
+              <span className="text-sm font-black text-[#1a1a2e] dark:text-white font-mono tracking-wider">
+                {orderPrefix || 'TV-'}{(nextOrderSequence || 0).toString().padStart(4, '0')}
+              </span>
+            </div>
           </div>
 
           <div>
