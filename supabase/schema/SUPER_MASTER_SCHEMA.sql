@@ -611,8 +611,12 @@ RETURNS TRIGGER AS $$
 DECLARE
   prefix TEXT;
 BEGIN
-  SELECT COALESCE(order_prefix, 'ZE-') INTO prefix FROM store_settings LIMIT 1;
-  NEW.order_number := prefix || LPAD(nextval('order_number_seq')::TEXT, 4, '0');
+  SELECT order_prefix INTO prefix FROM store_settings LIMIT 1;
+  IF prefix IS NOT NULL AND prefix != '' THEN
+    NEW.order_number := prefix;
+  ELSE
+    NEW.order_number := 'ZE-' || LPAD(nextval('order_number_seq')::TEXT, 4, '0');
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
