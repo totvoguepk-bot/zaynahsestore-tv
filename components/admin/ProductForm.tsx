@@ -713,6 +713,16 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
     if (!name.trim()) return toast.error('Product Name is required');
     if (!slug.trim()) return toast.error('Product Slug is required');
 
+    if (hasVariants) {
+      if (variants.length === 0) {
+        return toast.error('Please add or generate at least one variant before saving.');
+      }
+      const hasStock = variants.some(v => v.stock !== undefined && v.stock !== null && !isNaN(v.stock));
+      if (!hasStock) {
+        return toast.error('At least one variant must have a stock value.');
+      }
+    }
+
     try {
       const parsedTags = tagInput
         .split(',')
@@ -1218,15 +1228,26 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                   />
                 </div>
 
-                {!hasVariants && !isService && (
+                {!isService && (
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">In Stock Quantity</label>
-                    <input
-                      type="number"
-                      value={stock}
-                      onChange={(e) => setStock(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm font-medium focus:border-[#1a1a2e] focus:bg-white focus:outline-none transition-all dark:border-gray-800 dark:bg-[#111124]"
-                    />
+                    {hasVariants ? (
+                      <div className="relative mt-1.5">
+                        <div className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed select-none transition-all">
+                          {variants.reduce((sum, v) => sum + (v.stock || 0), 0)}
+                        </div>
+                        <span className="text-[10px] text-gray-450 dark:text-gray-550 mt-1 block font-semibold">
+                          Managed per variant below
+                        </span>
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm font-medium focus:border-[#1a1a2e] focus:bg-white focus:outline-none transition-all dark:border-gray-800 dark:bg-[#111124]"
+                      />
+                    )}
                   </div>
                 )}
                 {!isService && (
