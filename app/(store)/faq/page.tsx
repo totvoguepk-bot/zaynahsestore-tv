@@ -4,10 +4,15 @@ import { Metadata } from 'next';
 
 export const revalidate = 60; // Cache for 1 minute
 
-export const metadata: Metadata = {
-  title: 'Frequently Asked Questions (FAQ) | Zaynahs E-Store',
-  description: 'Find answers to frequently asked questions about shipping, delivery, payments, returns, and orders.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+  return {
+    title: `Frequently Asked Questions (FAQ) | ${storeName}`,
+    description: 'Find answers to frequently asked questions about shipping, delivery, payments, returns, and orders.',
+  };
+}
+
 
 export default async function FaqPage() {
   const settings = await getSettings();

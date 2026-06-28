@@ -4,10 +4,15 @@ import { Metadata } from 'next';
 
 export const revalidate = 60; // Cache for 1 minute
 
-export const metadata: Metadata = {
-  title: 'Return & Exchange Policy | Zaynahs E-Store',
-  description: 'Read our return and exchange policy. We offer easy exchanges and returns to ensure you have the best experience.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+  return {
+    title: `Return & Exchange Policy | ${storeName}`,
+    description: 'Read our return and exchange policy. We offer easy exchanges and returns to ensure you have the best experience.',
+  };
+}
+
 
 export default async function ReturnsPage() {
   const settings = await getSettings();

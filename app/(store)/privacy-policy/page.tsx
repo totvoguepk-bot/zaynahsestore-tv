@@ -71,7 +71,7 @@ export default async function PrivacyPolicyPage() {
 
               <h2 className="text-xl font-bold mt-6 text-gray-900 dark:text-white">3. Data Retention and WhatsApp Orders</h2>
               <p>
-                Since Zaynahs E-Store processes final order transactions through WhatsApp, your checkout data is securely forwarded to our support representative to complete fulfillment. We do not sell, rent, or lease your personal information to third parties.
+                Since {storeName} processes final order transactions through WhatsApp, your checkout data is securely forwarded to our support representative to complete fulfillment. We do not sell, rent, or lease your personal information to third parties.
               </p>
 
               <h2 className="text-xl font-bold mt-6 text-gray-900 dark:text-white">4. Cookies and Customizer Toggles</h2>
