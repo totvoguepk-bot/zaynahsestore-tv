@@ -35,7 +35,8 @@ import {
   RefreshCw,
   Navigation,
   MessageCircle,
-  Trash2
+  Trash2,
+  User
 } from '@/components/common/Icons';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -202,6 +203,7 @@ function AdminLayoutContent({
     {
       key: 'settings', label: 'SETTINGS', items: [
         { label: 'General', href: '/admin/settings?tab=general', icon: Settings },
+        { label: 'Profile & Account', href: '/admin/settings/profile', icon: User },
         { label: 'Header', href: '/admin/settings?tab=header', icon: Layout },
         { label: 'Navigation', href: '/admin/settings?tab=navigation', icon: Navigation },
         { label: 'Products', href: '/admin/settings?tab=products', icon: Package },
