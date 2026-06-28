@@ -47,7 +47,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: `Customer Reviews | ${settings.storeName || 'TotVogue'}`,
+    name: `Customer Reviews | ${settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store'}`,
     ...(aggregateRating && {
       review: {
         '@type': 'AggregateRating',

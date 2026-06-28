@@ -15,7 +15,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 1. Fetch products and categories
   const { data: products } = await supabaseAdmin
     .from('products')
-    .select('slug, updated_at, name');
+    .select('slug, updated_at, name')
+    .is('deleted_at', null)
+    .eq('active', true);
 
   const { data: categories } = await supabaseAdmin
     .from('categories')
@@ -23,26 +25,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('active', true);
 
   // 2. Base static routes
-  const routes: MetadataRoute.Sitemap = [
-    {
-      url: siteUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${siteUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
+  const staticPages = [
+    { path: '', priority: 1.0, freq: 'daily' as const },
+    { path: '/faq', priority: 0.5, freq: 'monthly' as const },
+    { path: '/returns', priority: 0.5, freq: 'monthly' as const },
+    { path: '/contact', priority: 0.5, freq: 'monthly' as const },
+    { path: '/privacy-policy', priority: 0.3, freq: 'monthly' as const },
+    { path: '/wishlist', priority: 0.4, freq: 'weekly' as const },
   ];
+
+  const routes: MetadataRoute.Sitemap = staticPages.map((p) => ({
+    url: `${siteUrl}${p.path}`,
+    lastModified: new Date(),
+    changeFrequency: p.freq,
+    priority: p.priority,
+  }));
 
   // 3. Add products
   if (products) {

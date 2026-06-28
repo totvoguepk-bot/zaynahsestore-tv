@@ -5,7 +5,7 @@ export const revalidate = 0; // Serve dynamically to ensure dynamic branding upd
 export async function GET() {
   try {
     const settings = await getSettings();
-    const brandName = settings.storeName || 'TotVogue.pk';
+    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
     const description = settings.metaDescription || settings.tagline || `${brandName} - Kids Clothes Online Pakistan`;
 
     // Use only settings-driven URLs — /favicon.ico itself reads from settings dynamically
