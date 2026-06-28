@@ -25,26 +25,35 @@ export async function pingIndexNow(urls: string[], siteUrlOverride?: string): Pr
 
     console.log(`[IndexNow] Pinging ${urls.length} URLs for host: ${host}`);
 
+    const body = JSON.stringify({
+      host,
+      key,
+      keyLocation,
+      urlList: urls
+    });
+
+    console.log(`[IndexNow] Sending to host=${host} keyLocation=${keyLocation}`);
+
     const response = await fetch('https://api.indexnow.org/IndexNow', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8'
       },
-      body: JSON.stringify({
-        host,
-        key,
-        keyLocation,
-        urlList: urls
-      })
+      body
     });
 
+    const text = await response.text();
+
     if (!response.ok) {
-      const text = await response.text();
-      console.error(`[IndexNow] API responded with error status ${response.status}:`, text);
+      console.error(`[IndexNow] API error ${response.status}:`, text);
       return false;
     }
 
-    console.log('[IndexNow] URLs submitted successfully!');
+    if (text && text.includes('error')) {
+      console.warn(`[IndexNow] API warning (${response.status}):`, text);
+    }
+
+    console.log(`[IndexNow] Success (${response.status}):`, text || '(no body)');
     return true;
   } catch (error) {
     console.error('[IndexNow] Failed to ping IndexNow API:', error);
