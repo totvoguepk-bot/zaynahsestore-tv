@@ -52,6 +52,13 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
 4. **Cloudflare cache override:**
    - Always set `cdn-cache-control: public, s-maxage=86400, stale-while-revalidate=60`
    - This makes Cloudflare cache even pages with `cache-control: private`
+
+5. **Cloudflare & Vercel Caching Skew (WARNING)**:
+   - Caching HTML files on Cloudflare for 24h (`s-maxage=86400`) while Vercel serves unique hashed CSS/JS files (e.g. `_next/static/css/hash.css`) causes **un-styled layouts, raw HTML text, and missing images** on new deploys. The old cached HTML points to deleted assets.
+   - **Fix**: Whenever a new deploy goes live, you MUST trigger a Cloudflare cache purge ("Purge Everything"), or use a shorter cache duration (`s-maxage=600`) for HTML responses to minimize the version discrepancy window.
+
+6. **Metadata Title Duplication (Absolute Title rule)**:
+   - If a child page title (e.g. homepage) duplicates the brand name or suffix from the parent layout (`title.template`), always specify the title as an object with the `absolute` property: `title: { absolute: title }` instead of a plain string. This forces Next.js to ignore the parent layout suffix and prevents doubled titles.
 <!-- END:ssr-rules -->
 
 <!-- BEGIN:db-rules -->
