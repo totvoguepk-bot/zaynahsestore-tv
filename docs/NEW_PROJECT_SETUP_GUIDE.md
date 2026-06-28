@@ -156,6 +156,45 @@ DIRECT_URL=postgresql://postgres.XXXX:PASSWORD@aws-1-ap-northeast-1.pooler.supab
    - Seeds the default settings singleton row in `store_settings`.
 *Note: You do NOT need to run prisma/supabase push commands or manually set up buckets, realtime settings, or policies in the dashboard.*
 
+### 3.4 Auth Configuration (via Management API)
+
+After DB setup, **auth settings must be configured** otherwise password reset flow breaks and `/oauth/consent` 404 appears.
+
+**Manual (Supabase Dashboard):**
+- Go to Authentication → URL Configuration
+- Set `Site URL` to your domain (e.g. `https://yourdomain.pk`)
+- Add `Redirect URLs`: `https://yourdomain.pk/admin/reset-password`
+- Disable "Supabase OAuth Server" toggle (removes `/oauth/consent` 404)
+- Enable "Require reauthentication on password change"
+
+**Automated (via API — agent/sub yahi karega):**
+```bash
+curl -X PATCH "https://api.supabase.com/v1/projects/{REF}/config/auth" \
+  -H "Authorization: Bearer $SUPABASE_MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "site_url": "https://yourdomain.pk",
+    "uri_allow_list": "https://yourdomain.pk/admin/reset-password,https://www.yourdomain.pk/admin/reset-password",
+    "oauth_server_enabled": false,
+    "oauth_server_authorization_path": "/oauth/consent",
+    "security_update_password_require_reauthentication": true
+  }'
+```
+
+**Verify auth config:**
+```bash
+curl -s "https://api.supabase.com/v1/projects/{REF}/config/auth" \
+  -H "Authorization: Bearer $SUPABASE_MGMT_TOKEN" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('site_url:', d.get('site_url')); print('uri_allow_list:', d.get('uri_allow_list')); print('oauth_server_enabled:', d.get('oauth_server_enabled'))"
+```
+
+Expected output:
+```
+site_url: https://yourdomain.pk
+uri_allow_list: https://yourdomain.pk/admin/reset-password,https://www.yourdomain.pk/admin/reset-password
+oauth_server_enabled: False
+```
+
 ---
 
 ## PART 4: GitHub Setup
@@ -691,6 +730,18 @@ Agent Supabase SQL Editor API use kare ga:
 ✅ Storage policies set kare ga (public read, admin write)
 ✅ pg_net extension enable kare ga (webhooks ke liye)
 ✅ Realtime enable kare ga on relevant tables
+```
+
+### Step 2.5 — Auth Configuration (via Management API)
+```
+Agent Supabase Management API se auth settings configure kare ga:
+
+✅ site_url → https://[domain]
+✅ uri_allow_list → https://[domain]/admin/reset-password, https://www.[domain]/admin/reset-password
+✅ oauth_server_enabled → false (/oauth/consent 404 fix)
+✅ security_update_password_require_reauthentication → true
+
+PATCH /v1/projects/{ref}/config/auth with all values
 ```
 
 ### Step 3 — Supabase Webhooks (via Management API)
