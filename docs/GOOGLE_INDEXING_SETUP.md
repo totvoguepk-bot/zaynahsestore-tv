@@ -151,3 +151,98 @@ Logs dekhne: Supabase Dashboard → Table Editor → `indexing_log`
 | `403 Forbidden` | Search Console mein service account email ko **Owner** permission nahi di |
 | `429 Rate Limit` | Google Indexing API free limit 200 URLs/day, kal tak wait karo |
 | JWT error | Private key format sahi hai? Double quotes + literal `\n` hona chahiye |
+
+---
+
+## 🧠 Learnings (Isses & Fixes)
+
+### 1. Double Base64 Encoding Bug
+**Symptom:** `"invalid_grant" / "Invalid JWT Signature"`
+
+**Cause:** `base64UrlEncode()` JWT signature ko do baar base64 encode kar raha tha:
+```
+rs256Sign() → base64 string → base64UrlEncode() → Buffer.from(str).toString('base64') → DOUBLE ENCODE
+```
+
+**Fix:** `rs256Sign()` ab raw `Buffer` return kare, base64 nahi. `base64UrlEncode(string | Buffer)` accept kare.
+
+### 2. Private Key Format (.env vs Vercel)
+**Cause:** `.env.local` mein actual newlines, Vercel JSON API mein `\n` literal chars.
+
+**Fix:** Code mein normalize karo: `privateKey.replace(/\\n/g, '\n')`
+
+### 3. Vercel Upload Corruption
+**Cause:** Bash one-liner ne sirf key ki 2nd line capture ki, poora key nahi.
+
+**Fix:** Python se extract karo: `re.search(r'KEY="([\s\S]+?)"', content)`
+
+### 4. Vercel API Race Condition
+**Cause:** DELETE ke immediately baad POST → "ENV_CONFLICT"
+
+**Fix:** DELETE + wait 2s + POST, ya PATCH ka use karo.
+
+### 5. Cloudflare Cache Stale
+**Cause:** CF 4h cache → purana response aata raha.
+
+**Fix:** Deploy ke baad CF cache purge karo.
+
+### 6. GitHub Push Secret Block
+**Cause:** Service account JSON file commit ho gayi.
+
+**Fix:** `git reset --soft`, file `/tmp/` move, `.gitignore`, `push --force`
+
+---
+
+## 🧪 All Tests (Terminal + Manual)
+
+### SEO Health (Browser)
+```
+https://YOUR_DOMAIN/api/seo/test
+```
+Check: `googleIndexingTest.status` → `ok`
+
+### Single URL Submit
+```bash
+curl -X POST https://YOUR_DOMAIN/api/indexing \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://YOUR_DOMAIN/", "type": "URL_UPDATED"}'
+```
+
+### Batch Submit (max 200)
+```bash
+curl -X POST https://YOUR_DOMAIN/api/indexing/batch \
+  -H "Content-Type: application/json" \
+  -d '{"urls": ["https://YOUR_DOMAIN/", "https://YOUR_DOMAIN/shop"]}'
+```
+
+### Check Logs (Supabase)
+```sql
+SELECT * FROM indexing_log ORDER BY created_at DESC LIMIT 10;
+```
+
+### Auto-Indexing Test
+```
+1. Admin mein product edit/save karo
+2. Webhook trigger → notifyGoogleIndexing()
+3. indexing_log mein entry aayi?
+4. Search Console → URL Inspection → product URL
+```
+
+### All-in-One Quick Test
+```bash
+curl -s https://YOUR_DOMAIN/api/seo/test | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+r=d['results']
+print(f'Google: {r[\"googleIndexing\"][\"status\"]} | Test: {r[\"googleIndexingTest\"][\"status\"]}')"
+```
+
+### Console Links
+
+| Service | Link |
+|---------|------|
+| Enable Indexing API | https://console.cloud.google.com/apis/library/indexing.googleapis.com |
+| Service Accounts | https://console.cloud.google.com/iam-admin/serviceaccounts |
+| Search Console | https://search.google.com/search-console |
+| Vercel Env Vars | https://vercel.com/PROJECT/settings/environment-variables |
+| Cloudflare Dashboard | https://dash.cloudflare.com/ |
+| Supabase Table Editor | https://supabase.com/dashboard/project/PROJECT_REF/editor |
