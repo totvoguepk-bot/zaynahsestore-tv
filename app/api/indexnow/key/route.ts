@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get('key');
   const expectedKey = process.env.INDEXNOW_API_KEY;
+  const url = request.url;
 
-  console.log('[IndexNow Key] Request:', { key, expectedKey: expectedKey?.substring(0, 8) + '...', match: key === expectedKey, envSet: !!expectedKey });
+  console.log('[IndexNow Key] Debug:', { url, key, expectedKey: expectedKey?.substring(0,16)+'...', match: key === expectedKey, keyLen: key?.length, expLen: expectedKey?.length, envSet: !!expectedKey });
 
   if (!expectedKey || key !== expectedKey) {
     return new NextResponse('Not Found', { status: 404 });
