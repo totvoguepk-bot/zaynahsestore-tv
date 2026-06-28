@@ -165,6 +165,48 @@ Product Save/Update
 
 ---
 
+## Manual Tests (Browser + Admin)
+
+### 1. SEO Health Page (Browser)
+```
+URL:  https://YOUR_DOMAIN/api/seo/test
+Check: googleIndexingTest.status → "ok"
+```
+
+### 2. Product Save → Auto Indexing Trigger
+```
+1. Admin panel mein jao: https://YOUR_DOMAIN/admin
+2. Koi bhi product edit karo aur Save karo
+3. Webhook trigger hoga:
+   /api/revalidate → revalidateProduct() → notifyGoogleIndexing()
+4. Check indexing_log table mein entry aayi?
+5. Google Search Console → URL Inspection → woh product URL daalo
+   → "URL is on Google" dikhna chahiye
+```
+
+### 3. Supabase indexing_log Check
+```
+Supabase Dashboard → Table Editor → indexing_log
+Ya SQL:
+  SELECT url, type, status, created_at
+  FROM indexing_log
+  ORDER BY created_at DESC
+  LIMIT 10;
+```
+
+### 4. Check Vercel Logs
+```
+Vercel Dashboard → Deployments → Latest → Functions Logs
+Search: [GoogleIndexing] ✅ URL_UPDATED — https://...
+Ya:     [GoogleIndexing] Token exchange failed
+```
+
+### 5. Cloudflare Cache Status
+```bash
+curl -sI https://YOUR_DOMAIN/api/seo/test | grep cf-cache-status
+```
+Expected: `cf-cache-status: DYNAMIC` (no cache) ya `HIT` (cached)
+
 ## Terminal Tests
 
 ### 1. SEO Health Check
@@ -188,9 +230,20 @@ curl -X POST https://YOUR_DOMAIN/api/indexing/batch \
   -d '{"urls": ["https://YOUR_DOMAIN/", "https://YOUR_DOMAIN/shop"]}'
 ```
 
-### 4. Check indexing_log Table (Supabase)
-```sql
-SELECT * FROM indexing_log ORDER BY created_at DESC LIMIT 10;
+### 4. Local JWT Debug (Node.js)
+```bash
+node -e "
+const crypto = require('crypto');
+const fs = require('fs');
+const gkey = JSON.parse(fs.readFileSync('google-key.json', 'utf8'));
+function b64url(s) { return Buffer.from(s).toString('base64').replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_'); }
+const now = Math.floor(Date.now()/1000);
+const h = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+const c = b64url(JSON.stringify({iss:gkey.client_email,scope:'https://www.googleapis.com/auth/indexing',aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600}));
+const s = crypto.createSign('RSA-SHA256'); s.update(h+'.'+c); s.end();
+const sig = b64url(s.sign(gkey.private_key));
+console.log('JWT:', h+'.'+c+'.'+sig);
+"
 ```
 
 ### 5. Vercel Deploy Trigger
@@ -204,6 +257,22 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"files": ["https://YOUR_DOMAIN/api/seo/test"]}'
+```
+
+### 7. Quick All-in-One Test
+```bash
+# Purge CF cache → Test SEO → Submit homepage → Check log
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -d '{"files":["https://YOUR_DOMAIN/api/seo/test"]}' && \
+curl -s https://YOUR_DOMAIN/api/seo/test | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+r=d['results']
+print(f\"Google: {r['googleIndexing']['status']} | Test: {r['googleIndexingTest']['status']}\")
+" && \
+curl -s -X POST https://YOUR_DOMAIN/api/indexing \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://YOUR_DOMAIN/","type":"URL_UPDATED"}'
 ```
 
 ---
