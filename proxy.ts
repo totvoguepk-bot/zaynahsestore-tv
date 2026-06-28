@@ -24,7 +24,14 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Catch password reset code on root path and redirect to admin reset page
+  if (pathname === '/' && searchParams.get('code')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/reset-password';
+    return NextResponse.redirect(url);
+  }
 
   // Public admin paths — no auth required
   const isPublicAdminPath =
@@ -59,5 +66,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/'],
 };
