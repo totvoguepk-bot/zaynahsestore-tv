@@ -1,5 +1,7 @@
 # Google Indexing API — Issues & Learnings
 
+> ✅ **Final Status:** Working | `GET /api/seo/test` → `googleIndexingTest: ok`
+
 ## Issue 1 — Bug: Double Base64 Encoding
 
 **Symptom:** `"invalid_grant"` / `"Invalid JWT Signature"` from Google OAuth
@@ -160,3 +162,76 @@ Product Save/Update
 | `app/api/indexing/batch/route.ts` | Batch submit (max 200) |
 | `app/api/seo/test/route.ts` | SEO health check |
 | `supabase/migrations/20260628030000_add_indexing_log_table.sql` | Logging table |
+
+---
+
+## Terminal Tests
+
+### 1. SEO Health Check
+```bash
+curl -s https://YOUR_DOMAIN/api/seo/test | python3 -m json.tool
+```
+Check: `googleIndexingTest.status` should be `ok`
+
+### 2. Manual Single URL Submit
+```bash
+curl -X POST https://YOUR_DOMAIN/api/indexing \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://YOUR_DOMAIN/", "type": "URL_UPDATED"}'
+```
+Response: `{ "success": true, "url": "...", "type": "URL_UPDATED" }`
+
+### 3. Batch Submit (max 200)
+```bash
+curl -X POST https://YOUR_DOMAIN/api/indexing/batch \
+  -H "Content-Type: application/json" \
+  -d '{"urls": ["https://YOUR_DOMAIN/", "https://YOUR_DOMAIN/shop"]}'
+```
+
+### 4. Check indexing_log Table (Supabase)
+```sql
+SELECT * FROM indexing_log ORDER BY created_at DESC LIMIT 10;
+```
+
+### 5. Vercel Deploy Trigger
+```bash
+git commit --allow-empty -m "chore: redeploy" && git push
+```
+
+### 6. Cloudflare Cache Purge
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"files": ["https://YOUR_DOMAIN/api/seo/test"]}'
+```
+
+---
+
+## Console Links
+
+| Service | Link | Purpose |
+|---------|------|---------|
+| Google Indexing API Enable | https://console.cloud.google.com/apis/library/indexing.googleapis.com | API on/off |
+| Google Service Accounts | https://console.cloud.google.com/iam-admin/serviceaccounts | Keys management |
+| Google Search Console | https://search.google.com/search-console | Site verify + Owner add |
+| Vercel Env Vars | https://vercel.com/PROJECT/settings/environment-variables | Manage secrets |
+| Cloudflare Dashboard | https://dash.cloudflare.com/ | DNS + Cache |
+| Supabase Table Editor | https://supabase.com/dashboard/project/PROJECT_REF/editor | indexing_log table |
+| IndexNow Key Check | https://YOUR_DOMAIN/YOUR_KEY.txt | Key file reachable? |
+
+---
+
+## All Credentials Check
+
+| Key | In Vercel? | Source |
+|-----|------------|--------|
+| `GOOGLE_INDEXING_SA_EMAIL` | ✅ | Google JSON key → `client_email` |
+| `GOOGLE_INDEXING_SA_KEY` | ✅ | Google JSON key → `private_key` |
+| `GOOGLE_SITE_VERIFICATION` | ✅ | Search Console meta tag value |
+| `INDEXNOW_API_KEY` | ✅ | https://www.indexnow.org/ |
+| `CLOUDFLARE_API_TOKEN` | ✅ | Cloudflare dashboard |
+| `CLOUDFLARE_ZONE_ID` | ✅ | Cloudflare → domain → right sidebar |
+| `REVALIDATE_SECRET` | ✅ | Custom random string |
+| `NEXT_PUBLIC_SITE_URL` | ✅ | `https://YOUR_DOMAIN` |
+| `NEXT_PUBLIC_BRAND_NAME` | ✅ | Store name |
