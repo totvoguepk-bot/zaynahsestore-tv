@@ -6,12 +6,19 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get('key');
   const expectedKey = process.env.INDEXNOW_API_KEY;
-  const url = request.url;
 
-  console.log('[IndexNow Key] Debug:', { url, key, expectedKey: expectedKey?.substring(0,16)+'...', match: key === expectedKey, keyLen: key?.length, expLen: expectedKey?.length, envSet: !!expectedKey });
+  // Debug: check if env var is available and compare
+  const debug = {
+    keyFromParam: key,
+    expectedKeyFirst16: expectedKey?.substring(0, 16) || '(not set)',
+    match: key === expectedKey,
+    paramLen: key?.length,
+    envLen: expectedKey?.length,
+    envSet: !!expectedKey,
+  };
 
   if (!expectedKey || key !== expectedKey) {
-    return new NextResponse('Not Found', { status: 404 });
+    return NextResponse.json({ error: 'Not Found', debug }, { status: 404 });
   }
 
   return new NextResponse(key, {
