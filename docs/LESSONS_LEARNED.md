@@ -959,6 +959,113 @@ Auto-slug ab sirf tab fire hoga jab server ne koi slug nahi diya (normal new pro
 
 ---
 
+# Masla 11: Google Indexing API — "Invalid JWT Signature" (June 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+
+Google Indexing API ko notify karne pe error aata tha:
+```json
+{"error":"invalid_grant","error_description":"Invalid JWT Signature."}
+```
+
+Google OAuth server JWT ko accept nahi kar raha tha, chahe service account email aur private key .env.local mein sahi set the.
+
+---
+
+## Issue Kya Tha (Root Cause)
+
+**Double Base64 Encoding Bug**:
+
+`lib/googleIndexing.ts` mein do functions the:
+
+```
+rs256Sign() → sign.sign(key, 'base64') → PEHLE se base64 string return karta tha
+        ↓
+base64UrlEncode() → Buffer.from(str).toString('base64') → us base64 string ko PHIR SE base64 encode kar deta tha
+```
+
+Yeh do baar encode ho kar Google ke paas garab signature pahunchta tha.
+
+---
+
+## Fix Kaise Hua
+
+```diff
+- function rs256Sign(data, key): string {
+-   return sign.sign(key, 'base64'); // already base64 string
+- }
++ function rs256Sign(data, key): Buffer {
++   return sign.sign(key); // raw binary Buffer
++ }
+```
+
+Aur `base64UrlEncode` ko update kiya taake `string | Buffer` dono accept kare. Ab binary signature sirf ek baar base64url encode hota hai.
+
+---
+
+## Sath Mein 2 Aur Issues The
+
+### Issue A: Vercel Env Var Upload Corruption
+Pehli baar Vercel env upload karte waqt bash one-liner ne sirf private key ki doosri line capture ki, poora key nahi.
+
+**Fix:** Python `re.search(r'KEY="([\s\S]+?)"', content)` se multi-line key extract karo.
+
+### Issue B: Cloudflare Cache Stale
+`/api/seo/test` ka response Cloudflare 4 ghante cache kar raha tha. Deploy ke baad bhi purana response aata raha.
+
+**Fix:** Deploy ke baad Cloudflare cache purge:
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -d '{"files":["https://domain.com/api/seo/test"]}'
+```
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: JWT signature kabhi do baar base64 mat karo.
+   sign.sign(key) → raw Buffer → base64UrlEncode() → single encoding ✅
+
+✅ RULE: Private key env var mein multi-line ho to Python se extract karo,
+   bash grep -A se nahi.
+
+✅ RULE: API endpoints ke responses Cloudflare cache kar sakte hain.
+   Deploy ke baad purge karo ya Cache-Control headers check karo.
+
+✅ RULE: "Invalid JWT Signature" ka pehla debugging step:
+   1. Kya key sahi project/service account se hai?
+   2. Kya Search Console mein Owner add kiya?
+   3. Kya code mein double encoding to nahi ho rahi?
+```
+
+### Checklist — Google Indexing API Setup:
+
+```
+☐ Web Search Indexing API enable kiya?
+☐ Service account bana ke JSON download kiya?
+☐ Search Console mein service account email Owner banaya?
+☐ .env.local mein SA_EMAIL + SA_KEY set kiya?
+☐ Code mein base64 encoding sirf ek baar ho rahi?
+☐ /api/seo/test → googleIndexingTest: "ok" ?
+```
+
+---
+
+## Files Jo Fix Hueen
+
+- [`lib/googleIndexing.ts`](file:///Users/shoaib/Documents/zaynahsestore-tv-main/lib/googleIndexing.ts) — `rs256Sign` returns Buffer, `base64UrlEncode` accepts `string|Buffer`
+- [`app/api/seo/test/route.ts`](file:///Users/shoaib/Documents/zaynahsestore-tv-main/app/api/seo/test/route.ts) — better error output
+
+---
+
+> **Ek line mein:** "Google Indexing API mein 'Invalid JWT Signature' aa raha hai to pehla kaam: check karo ke signature do baar base64 to nahi ho raha!" 🔑
+
+---
+
 ## Fix Prompt (Copy-Paste for Any Project)
 
 Jab bhi kisi bhi project mein duplicate product ka 23505 error aaye, ye prompt kisi bhi AI agent ko de do:
