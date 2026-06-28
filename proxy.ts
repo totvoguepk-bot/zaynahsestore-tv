@@ -45,11 +45,30 @@ export async function proxy(request: NextRequest) {
 
   // Only protect /admin/* routes
   if (pathname.startsWith('/admin/')) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Debug: log auth cookie status
+    const allCookieNames = request.cookies.getAll().map((c) => c.name);
+    const authCookieName = allCookieNames.find(
+      (n) => n.startsWith('sb-') && n.endsWith('-auth-token')
+    );
+    if (authCookieName) {
+      const authCookie = request.cookies.get(authCookieName);
+      console.log(
+        `[proxy] Auth cookie found: ${authCookieName} (length: ${authCookie?.value?.length || 0})`
+      );
+    } else {
+      console.log(
+        `[proxy] No auth cookie found. Available cookies: ${allCookieNames.join(', ') || '(none)'}`
+      );
+    }
 
-    if (!user) {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      console.log(`[proxy] getUser() error: ${error.message}`);
+    }
+
+    if (!data?.user) {
+      console.log('[proxy] No user — redirecting to /admin/login');
       const url = request.nextUrl.clone();
       url.pathname = '/admin/login';
       return NextResponse.redirect(url);
