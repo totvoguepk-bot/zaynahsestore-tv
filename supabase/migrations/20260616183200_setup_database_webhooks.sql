@@ -26,6 +26,7 @@ DECLARE
   params jsonb;
   payload jsonb;
   timeout_ms integer;
+  resolved_store_url text;
 BEGIN
   -- Parse headers and params as jsonb
   BEGIN
@@ -41,6 +42,30 @@ BEGIN
   END;
 
   timeout_ms := COALESCE(timeout_str::integer, 5000);
+
+  -- Dynamically resolve domain from store_settings
+  BEGIN
+    SELECT store_url INTO resolved_store_url FROM public.store_settings LIMIT 1;
+    IF resolved_store_url IS NOT NULL AND resolved_store_url <> '' THEN
+      resolved_store_url := rtrim(resolved_store_url, '/');
+      
+      -- Ensure it starts with http:// or https://
+      IF NOT (resolved_store_url LIKE 'http://%' OR resolved_store_url LIKE 'https://%') THEN
+        resolved_store_url := 'https://' || resolved_store_url;
+      END IF;
+
+      -- Replace any template default URLs with the user-configured domain name
+      IF url LIKE 'https://www.zaynahs.pk%' THEN
+        url := replace(url, 'https://www.zaynahs.pk', resolved_store_url);
+      ELSIF url LIKE 'https://zaynahs.pk%' THEN
+        url := replace(url, 'https://zaynahs.pk', resolved_store_url);
+      ELSIF url LIKE 'https://zaynahs.com%' THEN
+        url := replace(url, 'https://zaynahs.com', resolved_store_url);
+      END IF;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    -- Table or columns might not exist yet during initial migrations setup, fallback silently
+  END;
 
   -- Build payload structure matching Supabase webhook event schema
   IF TG_OP = 'INSERT' THEN

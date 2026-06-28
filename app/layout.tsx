@@ -37,7 +37,7 @@ const getFaviconType = (url: string) => {
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const settings = await getSettings();
-    const siteUrl = await getSiteUrl(settings);
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
     const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
     const suffix = settings.meta_title_suffix || '';

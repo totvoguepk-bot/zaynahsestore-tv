@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       .maybeSingle();
 
     const settings = await getSettings();
-    const siteUrl = await getSiteUrl(settings);
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
     const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
 
     const title = seoMeta?.seo_title || `${category.name} | ${brandName}`;
