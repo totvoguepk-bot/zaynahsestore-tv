@@ -2,19 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Lock, Mail, Store } from '@/components/common/Icons';
-import { createClient } from '@/lib/supabase/client';
+import { Lock, Mail, Store, Eye, EyeOff } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { useSettings } from '@/lib/hooks/useSettings';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
   const { settings } = useSettings();
 
   const storeName = settings?.storeName || 'Zaynahs E-Store';
@@ -24,23 +21,24 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim()
+
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        }),
       });
 
-      if (error) throw error;
+      const data = await res.json();
 
-      const user = data.user;
-      const allowedAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-      if (user && allowedAdminEmail && user.email !== allowedAdminEmail) {
-        await supabase.auth.signOut();
-        throw new Error('Access denied: You are not authorized to access the admin portal.');
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication failed');
       }
 
       toast.success('Logged in successfully!');
-      router.refresh();
-      router.push('/admin/dashboard');
+      window.location.href = '/admin/dashboard';
     } catch (err) {
       console.error('Login error:', err);
       const errMsg = err instanceof Error ? err.message : 'Authentication failed';
@@ -101,13 +99,21 @@ export default function LoginPage() {
               <div className="relative mt-1">
                 <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 py-2.5 pl-10 pr-10 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               <div className="flex justify-end mt-1.5">
                 <Link
