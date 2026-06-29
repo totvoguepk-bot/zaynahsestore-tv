@@ -12,6 +12,7 @@ import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { cleanLocalhostUrls } from '@/lib/site-url';
+import { getBrandConfig } from '@/lib/brand-config';
 import { Metadata } from 'next';
 import Breadcrumb from '@/components/Breadcrumb';
 
@@ -62,7 +63,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+    const brandConfig = getBrandConfig(siteUrl);
+    const brandName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
 
     const title = seoMeta?.seo_title || `${product.name} | ${brandName}`;
     
@@ -145,6 +147,7 @@ export default async function ProductPage({ params }: PageProps) {
   const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
   const siteUrl = await getSiteUrl(settings);
+  const brandConfig = getBrandConfig(siteUrl);
   const productSchema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -154,7 +157,7 @@ export default async function ProductPage({ params }: PageProps) {
     "sku": product.sku || product.id,
     "brand": {
       "@type": "Brand",
-      "name": settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store'
+      "name": brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store'
     },
     "offers": {
       "@type": "Offer",

@@ -178,3 +178,11 @@ Jab bhi koi **purana / existing project clone kare** (already Supabase, Cloudfla
    - In the storefront layout/navbar, reset the `window` scroll position (`window.scrollTo({ top: 0, behavior: 'instant' })`) inside a `useEffect` on pathname/searchParams changes, EXCEPT when a scroll restoration is scheduled (`store_scroll_restore` exists in sessionStorage).
 <!-- END:navigation-scroll-rule -->
 
+<!-- BEGIN:middleware-rsc-rule -->
+# Middleware and RSC JSON Cache Rule
+
+1. **Never use `middleware.ts` for Next.js App Router redirects with Cloudflare.** The middleware convention can cause caching skews where Cloudflare caches the internal React Server Component (RSC) JSON payload instead of the HTML page, leading to raw JSON (`:HL["/_next/static...`) being displayed on the screen.
+2. **Always rename `middleware.ts` to `proxy.ts`.**
+3. **When redirecting from `proxy.ts` to a login or auth page, always append a cache-buster query parameter** (e.g., `?_nocache=timestamp`) and set `cdn-cache-control: no-store, no-cache, must-revalidate` on the NextResponse to explicitly prevent Cloudflare from caching the redirect or the resulting RSC payload.
+4. **Cookie Chunking**: Mobile browsers strictly enforce the 4KB cookie limit. When using Supabase SSR, ensure `createServerClient` sets cookies on the `NextResponse` explicitly during redirects, so chunked cookies are successfully stored on mobile devices.
+<!-- END:middleware-rsc-rule -->

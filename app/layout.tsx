@@ -21,6 +21,7 @@ const outfit = Outfit({
 import ThemeStyleRegistry from '@/components/common/ThemeStyleRegistry';
 import { getSettings } from '@/lib/services/settings';
 import { getSiteUrl } from '@/lib/site-url-server';
+import { getBrandConfig } from '@/lib/brand-config';
 import Pixels from '@/components/Pixels';
 import ChunkErrorListener from '@/components/common/ChunkErrorListener';
 
@@ -39,10 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
-    const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+    const brandConfig = getBrandConfig(siteUrl);
+    const storeName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
     const suffix = settings.meta_title_suffix || '';
     const title = settings.metaTitle || storeName;
-    const description = settings.metaDescription || settings.tagline || `Welcome to ${storeName}. Premium quality products delivered to your doorstep. Order via WhatsApp.`;
+    const description = settings.metaDescription || brandConfig?.tagline || `Welcome to ${storeName}. Premium quality products delivered to your doorstep. Order via WhatsApp.`;
 
     const timestamp = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
 
@@ -158,6 +160,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSettings();
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+  const brandConfig = getBrandConfig(siteUrl);
+  const storeName = brandConfig?.name || settings.storeName || 'Zaynahs E-Store';
+  const description = settings.metaDescription || brandConfig?.tagline || '';
 
   return (
     <html
@@ -226,9 +232,9 @@ export default async function RootLayout({
                   '@graph': [
                     {
                       '@type': 'WebSite',
-                      name: settings.storeName || 'Zaynahs E-Store',
+                      name: storeName,
                       url: settings.storeUrl || '',
-                      description: settings.metaDescription || settings.tagline || '',
+                      description: description,
                       potentialAction: {
                         '@type': 'SearchAction',
                         target: {
@@ -240,11 +246,11 @@ export default async function RootLayout({
                     },
                     {
                       '@type': 'Organization',
-                      name: settings.storeName || 'Zaynahs E-Store',
+                      name: storeName,
                       url: settings.storeUrl || '',
                       logo: settings.logoUrl || '',
                       image: settings.bannerUrl || settings.logoUrl || '',
-                      description: settings.metaDescription || settings.tagline || '',
+                      description: description,
                     },
                   ],
                 }, null, 2),

@@ -609,7 +609,7 @@ export const getProductBySlug = async (slug: string) => {
 
 export const getProductById = async (id: string): Promise<Product | null> => {
   try {
-    const { data, error } = await staticSupabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .eq('id', id)
@@ -621,7 +621,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
     const product = mapProduct(data);
 
     // Fetch the latest sync status from meta_sync_log
-    const { data: logs, error: logsError } = await staticSupabase
+    const { data: logs, error: logsError } = await supabaseAdmin
       .from('meta_sync_log')
       .select('status, error, created_at')
       .eq('product_id', id)

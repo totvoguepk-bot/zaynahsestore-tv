@@ -1181,3 +1181,56 @@ Files are typically:
 
 Apply both fixes.
 ```
+
+---
+
+# Masla 10: Admin Login Redirect Loop & Cloudflare RSC Caching (June 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+1. Mobile devices par admin login karne ke baad dashboard load hota tha aur fauran wapas login page par redirect kar deta tha (Infinite loop).
+2. Desktop ya direct URL visit par `/admin/login` page blank screen dikhata tha aur raw JSON text (`:HL["/_next/static/css/...`) render ho jata tha HTML ki jagah.
+
+---
+
+## Issue Kya Tha (Root Cause)
+
+1. **Cookie Chunking Fail on Mobile (Limit 4KB):**
+   Supabase SSR ka auth token 4KB ki limit se bara ho gaya tha. Desktop browsers pass hone dete the lekin Safari/Mobile browsers cookie ko strictly reject karte the. Result: Server ko lagta tha user logged out hai. Chunking kaam isliye nahi kar rahi thi kyunki redirect response par explicit cookies attach nahi the.
+   
+2. **Next.js Middleware vs Proxy in Next 16:**
+   `middleware.ts` convention ki wajah se Next.js aur Cloudflare mein caching skew aa raha tha. Cloudflare client-side router requests ka "RSC Payload" (React Server Components json data) HTML ki jagah cache kar leta tha kyunki middleware redirect par cache control headers proper bypass nahi hote the.
+
+---
+
+## Fix Kaise Hua
+
+1. **Rename Middleware to Proxy:** `middleware.ts` ko rename karke `proxy.ts` kar diya jo Next.js latest version ka correct convention hai.
+2. **Explicit Cookie Attachment:** `proxy.ts` mein redirect response create karne ke baad `supabaseResponse.cookies.getAll().forEach(...)` loop lagaya taake chuncked session cookies force attach ho jayein.
+3. **Cache Buster & Headers:** Redirect URL mein `url.searchParams.set('_nocache', Date.now().toString());` add kiya aur headers mein `redirectRes.headers.set('cdn-cache-control', 'no-store, no-cache, must-revalidate');` lagaya taake Cloudflare is request ya RSC payload ko kabhi cache na kare.
+4. **Cloudflare Cache Purge:** System script se Cloudflare API call karke cache purge kiya.
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: Cloudflare aur Next.js (App Router) jab dono hoon, toh redirects karte waqt URL query mein ?_nocache= timestamp zarur bhejein agar auth redirect ho.
+
+✅ RULE: Middleware ko kabhi `middleware.ts` nahi rakhna agar build warning de raha ho. Hamesha `proxy.ts` use karein.
+
+✅ RULE: Supabase SSR middleware auth mein redirect (NextResponse.redirect) karte waqt, supabaseResponse se cookies nikal kar redirectResponse par explicitly `set` karein, warna mobile par login loop issue aayega!
+```
+
+### Checklist — Jab Auth Redirect Ya Middleware Likhna Ho:
+```
+☐ File ka naam proxy.ts hai?
+☐ Redirect URL mein cache bypass query lagayi?
+☐ Redirect pe cdn-cache-control: no-store lagaya?
+☐ Cookies explicitly set kien redirect response par?
+```
+
+---
+
+> **Ek line mein:** "Mobile login loop fix karne ke liye explicitly cookie attach karein aur raw JSON code rokne ke liye proxy.ts ke redirect pe _nocache query lagayein." 🔑

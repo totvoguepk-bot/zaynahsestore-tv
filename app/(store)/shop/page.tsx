@@ -3,6 +3,7 @@ import ShopPage from '@/components/store/ShopPage';
 import { getProducts } from '@/lib/services/products';
 import { getCategories, getCategoryBySlug } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
+import { getBrandConfig } from '@/lib/brand-config';
 import { Metadata } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -18,9 +19,10 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
     
-    const brandName = settings.storeName || 'Zaynahs E-Store';
+    const brandConfig = getBrandConfig(siteUrl);
+    const brandName = brandConfig?.name || settings.storeName || 'Zaynahs E-Store';
     let title = `Shop Products | ${brandName}`;
-    let description = settings.tagline || `Browse our collection of premium products. Confirm your orders instantly via WhatsApp.`;
+    let description = brandConfig?.tagline || `Browse our collection of premium products. Confirm your orders instantly via WhatsApp.`;
     let imageUrl = settings.logoUrl || settings.faviconUrl || '';
     let canonicalUrl = `${siteUrl}/shop`;
 

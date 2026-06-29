@@ -19,7 +19,8 @@ import {
   Edit,
   Save,
   Check,
-  MoreHorizontal
+  MoreHorizontal,
+  X
 } from '@/components/common/Icons';
 import { Order, StoreSettings, StatusLogItem } from '@/lib/types';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
@@ -42,6 +43,9 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isFulfillDropdownOpen, setIsFulfillDropdownOpen] = useState(false);
 
+  // Lightbox state
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
   // Adjacent order navigation
   const [prevOrderId, setPrevOrderId] = useState<string | null>(null);
   const [nextOrderId, setNextOrderId] = useState<string | null>(null);
@@ -58,7 +62,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('orders')
           .select('id')
@@ -66,14 +70,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           .is('deleted_at', null)
           .order('created_at', { ascending: true })
           .limit(1)
-          .single(),
+          .maybeSingle(),
       ]);
 
-      if (!prevResult.error) setPrevOrderId(prevResult.data?.id ?? null);
-      else setPrevOrderId(null);
-
-      if (!nextResult.error) setNextOrderId(nextResult.data?.id ?? null);
-      else setNextOrderId(null);
+      setPrevOrderId(prevResult.data?.id ?? null);
+      setNextOrderId(nextResult.data?.id ?? null);
     };
 
     fetchAdjacent();
@@ -727,7 +728,15 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               
               return (
                 <div key={idx} className="flex items-start gap-3 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
-                  <div className="w-12 h-12 rounded border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 bg-[#f6f6f7] dark:bg-gray-800 flex items-center justify-center">
+                  <div
+                    className="w-12 h-12 rounded border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 bg-[#f6f6f7] dark:bg-gray-800 flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      if (item.product.images && item.product.images.length > 0) {
+                        setLightboxImage(item.product.images[0].url);
+                      }
+                    }}
+                    title="View full size"
+                  >
                     {item.product.images && item.product.images.length > 0 ? (
                       <img src={item.product.images[0].url} alt={item.product.name} className="w-full h-full object-cover" />
                     ) : (
@@ -735,7 +744,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13.5px] font-medium text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline mb-1">
+                    <div
+                      className="text-[13.5px] font-medium text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline mb-1"
+                      onClick={() => window.open(`/admin/products/${item.product.id}`, '_blank')}
+                      title="Edit product"
+                    >
                       {item.product.name}
                     </div>
                     {variantStr && (
@@ -1254,6 +1267,31 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           
         </div>
       </div>
+      )}
+
+      {/* Image Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-[90vw] max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-[#16162a] cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Product image"
+              className="max-w-full max-h-[90vh] object-contain"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

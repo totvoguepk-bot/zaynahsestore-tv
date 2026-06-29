@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSettings } from '@/lib/services/settings';
+import { getBrandConfig } from '@/lib/brand-config';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { Metadata } from 'next';
 
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+    const brandConfig = getBrandConfig(siteUrl);
+    const brandName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
 
     const title = seoMeta?.seo_title || `${category.name} | ${brandName}`;
     const description = seoMeta?.meta_description || category.description || '';
