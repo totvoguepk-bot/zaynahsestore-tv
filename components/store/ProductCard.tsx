@@ -459,7 +459,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
         return (
           <div
             key="title"
-            className={`font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white group-hover:text-[#e94560] transition-colors leading-tight ${titleClampClass}`}
+            className={`font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white group-hover:text-[#e94560] transition-colors leading-tight pb-0.5 ${titleClampClass}`}
           >
             {product.name}
           </div>
@@ -467,7 +467,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
       case 'rating':
         if (!showStars) return null;
         return (
-          <div key="rating" className={`mt-0.5 flex items-center gap-0.5 text-[9px] text-amber-400 ${swatchAlign}`}>
+          <div key="rating" className={`mt-1 flex items-center gap-0.5 text-[9px] text-amber-400 ${swatchAlign}`}>
             {Array.from({ length: 5 }).map((_, idx) => (
               <svg
                 key={idx}
@@ -488,7 +488,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
         );
       case 'price':
         return (
-          <div key="price" className={`mt-0.5 flex items-baseline gap-1 flex-wrap ${swatchAlign}`}>
+          <div key="price" className={`mt-1.5 flex items-baseline gap-x-1.5 gap-y-0.5 flex-wrap ${swatchAlign}`}>
             <span className="product-price text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
               {hasPriceRange ? (
                 `${formatPrice(minPrice, currencySymbol)} – ${formatPrice(maxPrice, currencySymbol)}`
@@ -2630,7 +2630,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className={`object-cover transition-transform duration-500 ${settings?.imageHoverStyle === 'zoom' ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') : ''} ${secondImage && !hoveredImage ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') : ''}`}
+            className={`object-cover object-center transition-transform duration-500 ${settings?.imageHoverStyle === 'zoom' ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') : ''} ${secondImage && !hoveredImage ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') : ''}`}
             priority={false}
             loading="lazy"
           />
@@ -2640,7 +2640,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
               alt={`${product.name} alternate`}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
-              className={`object-cover absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
+              className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
               priority={false}
               loading="lazy"
             />
