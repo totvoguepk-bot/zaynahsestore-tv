@@ -12,7 +12,7 @@ import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { cleanLocalhostUrls } from '@/lib/site-url';
-import { getDomainBrand } from '@/lib/utils/getDomainBrand';
+import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { getDomainConfig } from '@/lib/config/domains';
 import { Metadata } from 'next';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -66,9 +66,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const settings = await getSettings();
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
-    const title = seoMeta?.seo_title || `${product.name} | ${brand.name}`;
+    const title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${product.name} | ${brand.name}`;
     
-    const rawDescription = seoMeta?.meta_description || cleanMetaDescription(product.description || '', siteUrl);
+    const rawDescription = cleanBrandName(seoMeta?.meta_description, brand.name) || cleanMetaDescription(product.description || '', siteUrl);
     const description = rawDescription.length > 160 ? `${rawDescription.slice(0, 157)}...` : rawDescription;
 
     const canonicalUrl = `${siteUrl}/product/${slug}`;
