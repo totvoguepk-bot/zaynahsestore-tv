@@ -3,7 +3,7 @@ import ShopPage from '@/components/store/ShopPage';
 import { getProducts } from '@/lib/services/products';
 import { getCategories, getCategoryBySlug } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
-import { getDomainBrand } from '@/lib/utils/getDomainBrand';
+import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -35,8 +35,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
           .eq('entity_id', category.id)
           .maybeSingle();
 
-        title = seoMeta?.seo_title || `${category.name} | ${brand.name}`;
-        description = seoMeta?.meta_description || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
+        title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${category.name} | ${brand.name}`;
+        description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
         imageUrl = category.imageUrl || imageUrl;
         canonicalUrl = `${siteUrl}/shop?category=${categorySlug}`;
       }

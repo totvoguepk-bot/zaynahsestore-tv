@@ -13,3 +13,8 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
     return { ...config, domain: 'localhost:3000', protocol: 'http' }
   }
 }
+
+export function cleanBrandName(text: string | null | undefined, currentBrandName: string): string {
+  if (!text) return '';
+  return text.replace(/Zaynahs E-Store|Zaynahs|TotVogue\.pk|TotVogue/gi, currentBrandName);
+}

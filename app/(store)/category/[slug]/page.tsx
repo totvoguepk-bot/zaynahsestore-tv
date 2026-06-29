@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSettings } from '@/lib/services/settings';
-import { getDomainBrand } from '@/lib/utils/getDomainBrand';
+import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
 export const revalidate = 300; // Cache redirect for 5 minutes
@@ -35,8 +35,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     const settings = await getSettings();
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
-    const title = seoMeta?.seo_title || `${category.name} | ${brand.name}`;
-    const description = seoMeta?.meta_description || category.description || '';
+    const title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${category.name} | ${brand.name}`;
+    const description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || '';
     const imageUrl = category.image_url || settings.logoUrl || settings.faviconUrl || '';
 
     return {
