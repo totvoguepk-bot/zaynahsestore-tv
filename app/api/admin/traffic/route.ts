@@ -11,6 +11,10 @@ const RANGE_MS: Record<string, number> = {
   '30d': 2592000000,
 };
 
+// In-memory cache to avoid hitting Cloudflare rate limits (1000 req/day free plan)
+let cfCache: { data: any; timestamp: number; range: string } | null = null;
+const CF_CACHE_TTL = 120_000; // 2 minutes
+
 // Validate required env vars at module load
 function validateEnv(): string[] {
   const missing: string[] = [];
@@ -45,6 +49,11 @@ async function fetchCloudflareCountryData(range: string) {
   if (!zoneId || !apiToken) {
     console.log('[traffic] Skipping Cloudflare: missing credentials');
     return { countries: [], totals: { visitors: 0, pageviews: 0 } };
+  }
+
+  // Return cached data if fresh
+  if (cfCache && cfCache.range === range && Date.now() - cfCache.timestamp < CF_CACHE_TTL) {
+    return cfCache.data;
   }
 
   const now = new Date();
@@ -156,13 +165,16 @@ async function fetchCloudflareCountryData(range: string) {
 
     console.log('[traffic] Parsed countries:', countries.map(c => `${c.code}(${c.visitors})`).join(', '));
 
-    return {
+    const result = {
       countries: countries.map(c => ({
         ...c,
         percent: dedupedVisitors > 0 ? Math.round((c.visitors / dedupedVisitors) * 100) : 0,
       })),
       totals: { visitors: dedupedVisitors, pageviews: dedupedPageviews },
     };
+
+    cfCache = { data: result, timestamp: Date.now(), range };
+    return result;
   } catch (err) {
     console.error('[traffic] Cloudflare fetch failed:', err);
     return { countries: [], totals: { visitors: 0, pageviews: 0 } };
