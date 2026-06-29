@@ -17,6 +17,7 @@ interface OrderRow {
   total?: string | number | null;
   discount_amount?: string | number | null;
   shipping_amount?: string | number | null;
+  shipping_method_name?: string | null;
   discount_code?: string | null;
   status: string;
   notes?: string | null;
@@ -46,6 +47,7 @@ const mapOrder = (row: OrderRow): Order => ({
   total: row.total ? parseFloat(row.total.toString()) : 0,
   discountAmount: row.discount_amount ? parseFloat(row.discount_amount.toString()) : 0,
   shippingAmount: row.shipping_amount ? parseFloat(row.shipping_amount.toString()) : 0,
+  shippingMethodName: row.shipping_method_name || undefined,
   discountCode: row.discount_code || undefined,
   status: row.status as Order['status'],
   notes: row.notes || undefined,
@@ -71,6 +73,8 @@ export const createOrder = async (order: {
   subtotal: number;
   total: number;
   notes?: string;
+  shippingCost?: number;
+  shippingMethodName?: string;
 }): Promise<Order> => {
   try {
     const supabase = await createClient();
@@ -244,6 +248,8 @@ export const createOrder = async (order: {
           items: order.items,
           subtotal: order.subtotal,
           total: order.total,
+          shipping_amount: order.shippingCost ?? 0,
+          shipping_method_name: order.shippingMethodName || null,
           notes: order.notes,
           status: 'pending',
           status_logs: initialLogs
@@ -383,6 +389,7 @@ export const updateOrderDetails = async (
     total?: number;
     discountAmount?: number;
     shippingAmount?: number;
+    shippingMethodName?: string;
     discountCode?: string;
     status?: Order['status'];
     staffNotes?: string;
@@ -418,6 +425,7 @@ export const updateOrderDetails = async (
     if (updates.total !== undefined) payload.total = updates.total;
     if (updates.discountAmount !== undefined) payload.discount_amount = updates.discountAmount;
     if (updates.shippingAmount !== undefined) payload.shipping_amount = updates.shippingAmount;
+    if (updates.shippingMethodName !== undefined) payload.shipping_method_name = updates.shippingMethodName;
     if (updates.discountCode !== undefined) payload.discount_code = updates.discountCode;
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.staffNotes !== undefined) payload.staff_notes = updates.staffNotes;
@@ -547,6 +555,10 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
       items: (data.items || []) as CartItem[],
       subtotal: data.subtotal ? parseFloat(data.subtotal.toString()) : 0,
       total: data.total ? parseFloat(data.total.toString()) : 0,
+      discountAmount: data.discount_amount ? parseFloat(data.discount_amount.toString()) : 0,
+      shippingAmount: data.shipping_amount ? parseFloat(data.shipping_amount.toString()) : 0,
+      shippingMethodName: data.shipping_method_name || undefined,
+      discountCode: data.discount_code || undefined,
       status: data.status as Order['status'],
       notes: data.notes || undefined,
       staffNotes: data.staff_notes || undefined,

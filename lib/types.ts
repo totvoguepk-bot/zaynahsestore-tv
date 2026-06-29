@@ -546,6 +546,7 @@ export interface Order {
   total: number;
   discountAmount?: number;
   shippingAmount?: number;
+  shippingMethodName?: string;
   discountCode?: string;
   status: 'pending' | 'placed' | 'confirmed' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
   notes?: string;

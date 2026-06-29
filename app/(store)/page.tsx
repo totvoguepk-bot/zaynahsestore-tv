@@ -6,7 +6,8 @@ import { getSettings } from '@/lib/services/settings';
 import { getTopReviews } from '@/lib/services/reviews';
 import { getHomepageSections } from '@/lib/services/sections';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { getBrandConfig } from '@/lib/brand-config';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import { Metadata } from 'next';
 
 export const revalidate = 86400; // 24 hours — webhooks purge on admin save
@@ -16,16 +17,17 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
-    const brandConfig = getBrandConfig(siteUrl);
-    const brandName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
-    const tagline = brandConfig?.tagline || 'Premium Mobile Shop';
+    const hdrs = await headers();
+    const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+    const brandName = getDomainName(host);
+    const tagline = settings.tagline || `Shop premium products at ${brandName}`;
     const banner = settings.bannerUrl || settings.logoUrl || settings.faviconUrl || '';
 
-    // Respect custom metaTitle or default to "StoreName - Tagline"
+    // Respect custom metaTitle or default to "BrandName - Tagline / Description"
     const title = settings.metaTitle || `${brandName} - ${tagline}`;
 
-    // Respect custom metaDescription or fallback to brand tagline or default text (NOT settings.tagline)
-    const desc = (settings.metaDescription || tagline || 'Premium Pakistani E-Commerce Store').slice(0, 160);
+    // Respect custom metaDescription or fallback
+    const desc = (settings.metaDescription || tagline).slice(0, 160);
 
     return {
       metadataBase: new URL(siteUrl),
@@ -55,9 +57,9 @@ export async function generateMetadata(): Promise<Metadata> {
         creator: settings.twitter_handle || process.env.NEXT_PUBLIC_TWITTER_HANDLE || '',
       }
     };
-  } catch (err) {
+  } catch {
     return {
-      title: 'Zaynahs E-Store'
+      title: 'Store'
     };
   }
 }

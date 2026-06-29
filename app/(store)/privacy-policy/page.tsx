@@ -1,21 +1,27 @@
 import React from 'react';
 import { getSettings } from '@/lib/services/settings';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import { Metadata } from 'next';
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
-  const storeName = settings.storeName || 'Store';
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+  const hdrs = await headers();
+  const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+  const brandName = getDomainName(host);
   return {
-    title: `Privacy Policy | ${storeName}`,
-    description: `Read our privacy policy to understand how ${storeName} collects, uses, and protects your personal data.`,
+    title: `Privacy Policy | ${brandName}`,
+    description: `Read our privacy policy to understand how ${brandName} collects, uses, and protects your personal data.`,
   };
 }
 
 export default async function PrivacyPolicyPage() {
   const settings = await getSettings();
-  const storeName = settings.storeName || 'Zaynahs E-Store';
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
+  const storeName = getDomainName(siteUrl);
   
   let supportEmail = settings.headerTopBarEmail;
   if (!supportEmail) {

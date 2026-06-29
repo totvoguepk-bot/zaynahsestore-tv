@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import PostExBookingManifestPage from './PostExBookingManifestPage';
 import { getSettings } from '@/lib/services/settings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { normalizeCity } from '@/lib/utils/normalizeCity';
 
 export const revalidate = 0;
 
@@ -59,7 +60,7 @@ export default async function PostExBookingPage({
       }
     }
 
-    const cleanCity = city.split(',')[0].trim();
+    const cleanCity = normalizeCity(city);
     const fullAddress = [address, aptSuite].filter(Boolean).join(', ');
 
     return {

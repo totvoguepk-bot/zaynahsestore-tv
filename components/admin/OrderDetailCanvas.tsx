@@ -467,7 +467,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20 font-sans">
+    <div className="max-w-full sm:max-w-6xl mx-auto space-y-6 pb-20 font-sans overflow-x-hidden w-full">
       
       {/* Detail Topbar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -490,7 +490,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               </span>
             </div>
 
-            <div className="flex items-center gap-2 ml-1">
+            <div className="flex flex-wrap gap-2 ml-1">
               {isPaid ? (
                 <span className="inline-flex items-center gap-1.5 bg-[#d4edda] text-[#2d6a4f] dark:bg-[#d4edda]/20 dark:text-[#a0dcb3] rounded-[6px] px-2 py-0.5 text-[13px] font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2d6a4f] dark:bg-[#a0dcb3]" />
@@ -554,24 +554,26 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
           <button
             onClick={() => setIsEditingOrder(true)}
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors whitespace-nowrap"
           >
             Edit
           </button>
 
           <button
             onClick={() => window.print()}
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors whitespace-nowrap"
           >
             Print
           </button>
 
-            <div className="relative">
+                <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-3 py-1.5 rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-[#babfc3] dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-[13.5px] font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-[#babfc3] dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-[13.5px] font-semibold shadow-sm transition-colors flex items-center gap-1 whitespace-nowrap"
+                title="More actions"
               >
-                More actions
+                <span className="hidden sm:inline">More actions</span>
+                <span className="sm:hidden">⋯</span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
 
@@ -745,7 +747,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   </div>
                   <div className="flex-1 min-w-0">
                     <div
-                      className="text-[13.5px] font-medium text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline mb-1"
+                      className="text-[13.5px] font-medium text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline mb-1 line-clamp-2"
                       onClick={() => window.open(`/admin/products/${item.product.id}`, '_blank')}
                       title="Edit product"
                     >
@@ -761,8 +763,8 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                       Customer name: {order.customerName || 'Guest Customer'}
                     </div>
                   </div>
-                  <div className="text-right text-[13.5px] text-gray-500 dark:text-gray-400 whitespace-nowrap flex-shrink-0">
-                    {formatPrice(item.unitPrice, settings.currencySymbol)} <span className="mx-2">×</span> {item.quantity}
+                  <div className="text-right text-[13.5px] text-gray-500 dark:text-gray-400 sm:whitespace-nowrap shrink-0">
+                    <span className="sm:inline">{formatPrice(item.unitPrice, settings.currencySymbol)} <span className="mx-2">×</span> {item.quantity}</span>
                     <div className="text-gray-900 dark:text-white font-semibold mt-1">
                       {formatPrice(item.total, settings.currencySymbol)}
                     </div>
@@ -795,13 +797,19 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 </div>
                 <div className="font-medium text-gray-900 dark:text-white">{formatPrice(order.subtotal || order.total, settings.currencySymbol)}</div>
               </div>
-              <div className="flex justify-between items-start py-2 border-b border-[#f1f1f1] dark:border-gray-800 last:border-0 text-[13.5px]">
-                <div>
-                  <div className="text-gray-900 dark:text-white">Shipping</div>
-                  <div className="text-[12px] text-gray-500 dark:text-gray-400">Economy (0.0 lb)</div>
-                </div>
-                <div className="font-medium text-gray-900 dark:text-white">Free</div>
-              </div>
+              {(() => {
+                const shipAmount = order.shippingAmount || 0;
+                const effectiveShip = shipAmount > 0 ? shipAmount : (order.total > order.subtotal ? order.total - order.subtotal : 0);
+                const shipLabel = order.shippingMethodName || 'Delivery Charges';
+                return (
+                  <div className="flex justify-between items-start py-2 border-b border-[#f1f1f1] dark:border-gray-800 last:border-0 text-[13.5px]">
+                    <div>
+                      <div className="text-gray-900 dark:text-white">{shipLabel}</div>
+                    </div>
+                    <div className="font-medium text-gray-900 dark:text-white">{effectiveShip > 0 ? formatPrice(effectiveShip, settings.currencySymbol) : 'Free'}</div>
+                  </div>
+                );
+              })()}
               <div className="flex justify-between items-start py-2 border-b border-[#f1f1f1] dark:border-gray-800 last:border-0 text-[13.5px]">
                 <div className="font-bold text-gray-900 dark:text-white">Total</div>
                 <div className="font-bold text-gray-900 dark:text-white">{formatPrice(order.total, settings.currencySymbol)}</div>

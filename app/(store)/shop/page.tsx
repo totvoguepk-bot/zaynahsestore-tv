@@ -3,7 +3,8 @@ import ShopPage from '@/components/store/ShopPage';
 import { getProducts } from '@/lib/services/products';
 import { getCategories, getCategoryBySlug } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
-import { getBrandConfig } from '@/lib/brand-config';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import { Metadata } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -18,11 +19,13 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     const { category: categorySlug } = await searchParams;
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    
-    const brandConfig = getBrandConfig(siteUrl);
-    const brandName = brandConfig?.name || settings.storeName || 'Zaynahs E-Store';
+
+    const hdrs = await headers();
+    const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+    const brandName = getDomainName(host);
+    const tagline = settings.tagline || `Shop premium products at ${brandName}`;
     let title = `Shop Products | ${brandName}`;
-    let description = brandConfig?.tagline || `Browse our collection of premium products. Confirm your orders instantly via WhatsApp.`;
+    let description = (settings.metaDescription || tagline).slice(0, 160);
     let imageUrl = settings.logoUrl || settings.faviconUrl || '';
     let canonicalUrl = `${siteUrl}/shop`;
 

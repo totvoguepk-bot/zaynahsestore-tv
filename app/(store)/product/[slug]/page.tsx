@@ -12,7 +12,8 @@ import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { cleanLocalhostUrls } from '@/lib/site-url';
-import { getBrandConfig } from '@/lib/brand-config';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import { Metadata } from 'next';
 import Breadcrumb from '@/components/Breadcrumb';
 
@@ -63,8 +64,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const brandConfig = getBrandConfig(siteUrl);
-    const brandName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+
+    const hdrs = await headers();
+    const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+    const brandName = getDomainName(host);
 
     const title = seoMeta?.seo_title || `${product.name} | ${brandName}`;
     
@@ -147,7 +150,14 @@ export default async function ProductPage({ params }: PageProps) {
   const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
   const siteUrl = await getSiteUrl(settings);
-  const brandConfig = getBrandConfig(siteUrl);
+  
+  let schemaBrandName = 'Store';
+  try {
+    const hdrs = await headers();
+    const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+    schemaBrandName = getDomainName(host);
+  } catch {}
+
   const productSchema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -157,7 +167,7 @@ export default async function ProductPage({ params }: PageProps) {
     "sku": product.sku || product.id,
     "brand": {
       "@type": "Brand",
-      "name": brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store'
+      "name": schemaBrandName
     },
     "offers": {
       "@type": "Offer",

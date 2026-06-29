@@ -1,14 +1,19 @@
 import React from 'react';
 import { getSettings } from '@/lib/services/settings';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import { Metadata } from 'next';
 
 export const revalidate = 60; // Cache for 1 minute
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
-  const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+  const hdrs = await headers();
+  const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+  const brandName = getDomainName(host);
   return {
-    title: `Frequently Asked Questions (FAQ) | ${storeName}`,
+    title: `Frequently Asked Questions (FAQ) | ${brandName}`,
     description: 'Find answers to frequently asked questions about shipping, delivery, payments, returns, and orders.',
   };
 }

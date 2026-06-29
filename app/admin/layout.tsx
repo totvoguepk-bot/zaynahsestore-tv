@@ -182,6 +182,7 @@ function AdminLayoutContent({
       key: 'customers', label: 'CUSTOMERS', items: [
         { label: 'Customers', href: '/admin/customers', icon: Users },
         { label: 'WhatsApp Leads', href: '/admin/leads', icon: MessageSquare },
+        { label: 'Traffic', href: '/admin/traffic', icon: Globe },
       ]
     },
     {
@@ -439,7 +440,7 @@ function AdminLayoutContent({
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all focus:outline-none active:scale-95"
+              className="md:hidden min-h-[44px] min-w-[44px] p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all focus:outline-none active:scale-95"
               title="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -449,7 +450,7 @@ function AdminLayoutContent({
             </h2>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-xs md:text-sm font-bold text-[#e94560] hover:underline">
+            <Link href="/" className="text-xs md:text-sm font-bold text-[#e94560] hover:underline whitespace-nowrap">
               View Store
             </Link>
           </div>

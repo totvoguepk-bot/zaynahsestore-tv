@@ -20,8 +20,8 @@ const outfit = Outfit({
 
 import ThemeStyleRegistry from '@/components/common/ThemeStyleRegistry';
 import { getSettings } from '@/lib/services/settings';
-import { getSiteUrl } from '@/lib/site-url-server';
-import { getBrandConfig } from '@/lib/brand-config';
+import { headers } from 'next/headers';
+import { getDomainName } from '@/lib/config/domains';
 import Pixels from '@/components/Pixels';
 import ChunkErrorListener from '@/components/common/ChunkErrorListener';
 
@@ -40,11 +40,12 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = await getSettings();
     const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
-    const brandConfig = getBrandConfig(siteUrl);
-    const storeName = brandConfig?.name || settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
-    const suffix = settings.meta_title_suffix || '';
-    const title = settings.metaTitle || storeName;
-    const description = settings.metaDescription || brandConfig?.tagline || `Welcome to ${storeName}. Premium quality products delivered to your doorstep. Order via WhatsApp.`;
+    const hdrs = await headers();
+    const host = hdrs.get('host') || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
+    const storeName = getDomainName(host);
+    const tagline = settings.tagline || `Shop premium products at ${storeName}`;
+    const description = settings.metaDescription || settings.tagline || `Discover amazing deals at ${storeName}. Quality items with fast delivery.`;
+    const title = settings.metaTitle || settings.tagline || tagline;
 
     const timestamp = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
 
@@ -74,14 +75,14 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       metadataBase: new URL(siteUrl),
       title: {
-        default: settings.metaTitle || (storeName + suffix),
-        template: `%s${suffix}`
+        default: title,
+        template: `%s - ${storeName}`
       },
-      description: description,
+      description,
       appleWebApp: {
         capable: true,
         statusBarStyle: "default",
-        title: title,
+        title,
       },
       icons: {
         icon: [
@@ -111,8 +112,8 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       openGraph: {
         type: 'website',
-        title: title + suffix,
-        description: description,
+        title,
+        description,
         url: siteUrl,
         siteName: storeName,
         locale: 'en_US',
@@ -120,21 +121,21 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       twitter: {
         card: 'summary_large_image',
-        title: title + suffix,
-        description: description,
+        title,
+        description,
         images: [ogImage],
         site: settings.twitter_handle || process.env.NEXT_PUBLIC_TWITTER_HANDLE || '',
         creator: settings.twitter_handle || process.env.NEXT_PUBLIC_TWITTER_HANDLE || '',
       }
     };
-  } catch (err) {
+  } catch {
     return {
-      title: "Zaynahs E-Store",
-      description: "Modern Pakistani E-Commerce — Premium Mobile Shop",
+      title: 'Store',
+      description: 'Premium online store.',
       appleWebApp: {
         capable: true,
         statusBarStyle: "default",
-        title: "Zaynahs E-Store",
+        title: 'Store',
       },
       verification: {
         google: process.env.GOOGLE_SITE_VERIFICATION || '',
@@ -161,9 +162,17 @@ export default async function RootLayout({
 }>) {
   const settings = await getSettings();
   const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-  const brandConfig = getBrandConfig(siteUrl);
-  const storeName = brandConfig?.name || settings.storeName || 'Zaynahs E-Store';
-  const description = settings.metaDescription || brandConfig?.tagline || '';
+
+  let storeName = 'Store';
+  let description = 'Premium online store.';
+  try {
+    const hdrs = await headers();
+    const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+    storeName = getDomainName(host);
+    description = settings.metaDescription || settings.tagline || `Discover amazing deals at ${storeName}.`;
+  } catch {
+    // Fallback already set above
+  }
 
   return (
     <html

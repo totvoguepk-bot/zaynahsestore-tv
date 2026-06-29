@@ -1,9 +1,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { getGlobalReviews } from '@/lib/services/reviews';
 import { getSocialProofs } from '@/lib/services/socialProof';
 import { getSettings } from '@/lib/services/settings';
 import { getSiteUrl } from '@/lib/site-url-server';
+import { getDomainName } from '@/lib/config/domains';
 import ReviewsPageClient from './ReviewsPageClient';
 
 interface PageProps {
@@ -12,9 +14,12 @@ interface PageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
-  const storeName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store';
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+  const hdrs = await headers();
+  const host = hdrs.get('host') || siteUrl || 'localhost:3000';
+  const brandName = getDomainName(host);
   return {
-    title: `Customer Reviews | ${storeName}`,
+    title: `Customer Reviews | ${brandName}`,
     description: 'Read authentic customer reviews and ratings. See what our customers are saying about our products.',
   };
 }
@@ -34,6 +39,8 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
 
   const socialProofs = await getSocialProofs();
 
+  const storeName = getDomainName(siteUrl || 'localhost:3000');
+
   const combinedTotal = total + socialProofs.length;
 
   // Generate JSON-LD aggregate schema
@@ -47,7 +54,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: `Customer Reviews | ${settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Zaynahs E-Store'}`,
+    name: `Customer Reviews | ${storeName}`,
     ...(aggregateRating && {
       review: {
         '@type': 'AggregateRating',

@@ -355,7 +355,9 @@ export default function CartContainer({ settings }: CartContainerProps) {
         customerName: `${firstName.trim()} ${lastName.trim()}`,
         customerPhone: phone.trim(),
         customerEmail: emailOrPhone.includes('@') ? emailOrPhone.trim() : undefined,
-        items, subtotal, total: finalTotal, notes: formattedAddress
+        items, subtotal, total: finalTotal, notes: formattedAddress,
+        shippingCost: shippingCost,
+        shippingMethodName: selectedShipping?.name ?? 'Standard Delivery'
       });
 
       if (saveInfo) {

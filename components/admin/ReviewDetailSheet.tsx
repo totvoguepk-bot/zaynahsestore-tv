@@ -72,12 +72,12 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-0 sm:p-4"
       onClick={onClose}
       onTouchMove={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
     >
       <div
-        className="relative w-full sm:max-w-md bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden max-h-[92dvh] sm:max-h-[90dvh]"
+        className="relative w-full sm:max-w-md mx-4 sm:mx-0 bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden max-h-[80vh]"
         onClick={e => e.stopPropagation()}
         onWheel={handleWheel}
       >
