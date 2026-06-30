@@ -605,6 +605,7 @@ CREATE TABLE IF NOT EXISTS orders (
   total NUMERIC(10,2) DEFAULT 0,
   discount_amount NUMERIC(10,2) DEFAULT 0,
   shipping_amount NUMERIC(10,2) DEFAULT 0,
+  shipping_method_name TEXT,
   discount_code TEXT,
   status TEXT DEFAULT 'pending',            -- pending, confirmed, shipped, delivered, cancelled
   notes TEXT,
