@@ -26,8 +26,10 @@ const mapClientProduct = (row: any): Product => {
     stock: v.stock || 0,
     sku: v.sku || undefined,
     imageUrl: v.image_url || undefined,
+    showImageSwatch: v.show_image_swatch ?? false,
     active: v.active ?? true,
-    sortOrder: v.sort_order || 0
+    sortOrder: v.sort_order || 0,
+    inventoryThreshold: v.inventory_threshold || 0
   })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
 
   const category = row.categories ? {
