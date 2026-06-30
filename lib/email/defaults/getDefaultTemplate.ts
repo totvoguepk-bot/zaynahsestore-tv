@@ -354,12 +354,12 @@ export function getDefaultTemplate(emailType: string, vars: Record<string, any>)
         <p><strong>Phone:</strong> ${vars.customer_phone || '—'}</p>
         <p><strong>Cart Value:</strong> ${vars.order_total}</p>
         <p><strong>Last Activity:</strong> ${vars.last_activity || 'Recently'}</p>
-        ${getCTAButton('View in Admin →', \`\${vars.admin_panel_url}/abandoned-carts\`)}
+        ${getCTAButton('View in Admin →', vars.admin_panel_url + '/abandoned-carts')}
       `;
       break;
 
     case 'postex_shipped':
-      title = \`Order Shipped via PostEx #\${vars.order_id}\`;
+      title = 'Order Shipped via PostEx #' + vars.order_id;
       content = `
         <h2 style="color: #1a1a2e; margin-top: 0;">Your order has been dispatched!</h2>
         <p>Hi ${vars.customer_name},</p>
@@ -368,10 +368,10 @@ export function getDefaultTemplate(emailType: string, vars: Record<string, any>)
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
           <p style="margin: 0 0 6px; color: #166534; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Tracking Consignment Number (CN)</p>
           <p style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #1a1a2e; letter-spacing: 3px;">${vars.tracking_number}</p>
-          ${vars.tracking_url ? \`<a href="\${vars.tracking_url}" target="_blank" style="display: inline-block; background: #e94560; color: #fff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 14px;">Track Your Parcel →</a>\` : ''}
+          ${vars.tracking_url ? '<a href="' + vars.tracking_url + '" target="_blank" style="display: inline-block; background: #e94560; color: #fff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 14px;">Track Your Parcel →</a>' : ''}
         </div>
         
-        ${vars.postex_remarks ? \`<p style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 14px; color: #9a3412; font-size: 13px; line-height: 1.5;"><strong>Note:</strong> \${vars.postex_remarks}</p>\` : ''}
+        ${vars.postex_remarks ? '<p style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 14px; color: #9a3412; font-size: 13px; line-height: 1.5;"><strong>Note:</strong> ' + vars.postex_remarks + '</p>' : ''}
         
         ${getOrderSummary(vars)}
         
@@ -382,7 +382,7 @@ export function getDefaultTemplate(emailType: string, vars: Record<string, any>)
       break;
 
     case 'admin_postex_shipped':
-      title = \`Admin Alert: Order Fulfilled via PostEx #\${vars.order_id}\`;
+      title = 'Admin Alert: Order Fulfilled via PostEx #' + vars.order_id;
       content = `
         <h2 style="color: #1a1a2e; margin-top: 0;">Order Fulfilled via PostEx</h2>
         <p><strong>Order:</strong> ${vars.order_id}</p>
@@ -390,7 +390,7 @@ export function getDefaultTemplate(emailType: string, vars: Record<string, any>)
         <p><strong>Tracking CN:</strong> ${vars.tracking_number}</p>
         <p><strong>Tracking Link:</strong> <a href="${vars.tracking_url}">${vars.tracking_url}</a></p>
         <p><strong>COD Amount:</strong> ${vars.order_total}</p>
-        ${getCTAButton('View in Dashboard', \`\${vars.admin_panel_url}/orders\`)}
+        ${getCTAButton('View in Dashboard', vars.admin_panel_url + '/orders')}
       `;
       break;
 
