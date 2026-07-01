@@ -12,6 +12,50 @@ import {
   deleteSizeGuide
 } from '@/lib/services/sizeGuides';
 import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
+
+const isOwnStorageUrl = (url: string) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return false;
+  
+  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
+  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
+  
+  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
+};
+
+const processImageUrl = async (url: string, prefix: string): Promise<string> => {
+  if (!url) return url;
+  if (isOwnStorageUrl(url)) return url; // Already in our bucket
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch image');
+    const blob = await res.blob();
+    
+    // Create a file from blob
+    const ext = blob.type.split('/')[1] || 'jpg';
+    const file = new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
+    
+    // Upload using supabase client directly
+    const supabase = createClient();
+    const fileName = `settings/${file.name}`;
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: true
+      });
+      
+    if (error) throw error;
+    
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Failed to download/upload image:', error);
+    return url; // Fallback to original URL if upload fails
+  }
+};
 
 export default function SizeGuidesPage() {
   const [guides, setGuides] = useState<SizeGuide[]>([]);
@@ -145,12 +189,18 @@ export default function SizeGuidesPage() {
         const newGuides = [...guides];
         for (const item of json) {
           if (!item.name || !Array.isArray(item.chart_data)) continue;
+          
+          let finalImageUrl = item.imageUrl || null;
+          if (finalImageUrl) {
+            finalImageUrl = await processImageUrl(finalImageUrl, item.name.toLowerCase().replace(/[^a-z0-9]/g, '-'));
+          }
+
           const existing = newGuides.find(g => g.name.toLowerCase() === item.name.toLowerCase());
           if (existing) {
             const updatedGuide = await updateSizeGuide(existing.id, {
               name: item.name,
               chart_data: item.chart_data,
-              imageUrl: item.imageUrl || undefined
+              imageUrl: finalImageUrl || undefined
             });
             const idx = newGuides.findIndex(g => g.id === existing.id);
             if (idx !== -1) newGuides[idx] = updatedGuide;
@@ -159,7 +209,7 @@ export default function SizeGuidesPage() {
             const created = await createSizeGuide({
               name: item.name,
               chart_data: item.chart_data,
-              imageUrl: item.imageUrl || undefined
+              imageUrl: finalImageUrl || undefined
             });
             newGuides.push(created);
             imported++;

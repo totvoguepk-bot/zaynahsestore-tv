@@ -47,42 +47,33 @@ export async function POST(request: NextRequest) {
 
     // Pre-fetch categories for all products in one batch query
     const categoryIds = [...new Set(productsData.map((p: any) => p.category_id).filter(Boolean))];
-    const categoryMap: Record<string, { name: string; slug: string }> = {};
+    const categoryMap: Record<string, any> = {};
     if (categoryIds.length > 0) {
       const { data: catsData } = await supabaseAdmin
         .from('categories')
-        .select('id, name, slug')
+        .select('*')
         .in('id', categoryIds);
       (catsData || []).forEach((cat: any) => {
-        categoryMap[cat.id] = { name: cat.name, slug: cat.slug };
+        categoryMap[cat.id] = {
+          name: cat.name,
+          slug: cat.slug,
+          description: cat.description,
+          imageUrl: cat.image_url,
+          sortOrder: cat.sort_order,
+          active: cat.active
+        };
       });
     }
 
     const exportedProducts: ExportedProduct[] = [];
 
     for (const product of productsData) {
-      // 1. Process product images and convert them to base64 data URLs
+      // 1. Process product images (No Base64 to keep JSON small)
       const images = await Promise.all(
         (product.product_images || []).map(async (img: any) => {
-          let dataUrl = '';
           let mimeType = 'image/webp';
           let fileSize = 0;
           let originalFilename = img.url.split('/').pop() || 'image.webp';
-
-          try {
-            const imageRes = await fetch(img.url);
-            if (imageRes.ok) {
-              const buffer = await imageRes.arrayBuffer();
-              const base64 = Buffer.from(buffer).toString('base64');
-              mimeType = imageRes.headers.get('content-type') || 'image/webp';
-              dataUrl = `data:${mimeType};base64,${base64}`;
-              fileSize = buffer.byteLength;
-            } else {
-              console.warn(`[Export API] Fetch failed for image ${img.url}: ${imageRes.statusText}`);
-            }
-          } catch (err) {
-            console.error(`[Export API] Error fetching image URL ${img.url}:`, err);
-          }
 
           // Fetch media_library metadata if available
           let alt = img.alt || '';
@@ -117,7 +108,7 @@ export async function POST(request: NextRequest) {
             title,
             description,
             caption,
-            dataUrl,
+            dataUrl: undefined, // Base64 removed
             mimeType,
             originalUrl: img.url,
             fileName: originalFilename,
@@ -126,27 +117,17 @@ export async function POST(request: NextRequest) {
         })
       );
 
-      // Filter out images that failed to fetch completely (dataUrl is empty)
-      const validImages = images.filter(img => img.dataUrl);
+      // Filter out images that have no url
+      const validImages = images.filter(img => img.originalUrl);
 
-      // 2. Process product variants and convert variant images to base64
+      // 2. Process product variants
       const variants = await Promise.all(
         (product.product_variants || []).map(async (v: any) => {
-          let imageDataUrl = '';
           let imageMimeType = 'image/webp';
-
           if (v.image_url) {
-            try {
-              const varImgRes = await fetch(v.image_url);
-              if (varImgRes.ok) {
-                const buffer = await varImgRes.arrayBuffer();
-                const base64 = Buffer.from(buffer).toString('base64');
-                imageMimeType = varImgRes.headers.get('content-type') || 'image/webp';
-                imageDataUrl = `data:${imageMimeType};base64,${base64}`;
-              }
-            } catch (err) {
-              console.error(`[Export API] Error fetching variant image ${v.image_url}:`, err);
-            }
+            // No Base64 download, keep JSON light
+            const ext = v.image_url.split('.').pop() || 'webp';
+            imageMimeType = `image/${ext}`;
           }
 
           return {
@@ -161,8 +142,8 @@ export async function POST(request: NextRequest) {
             stock: v.stock || 0,
             sku: v.sku || undefined,
             imageUrl: v.image_url || undefined,
-            imageDataUrl: imageDataUrl || undefined,
-            imageMimeType: imageDataUrl ? imageMimeType : undefined,
+            imageDataUrl: undefined,
+            imageMimeType: v.image_url ? imageMimeType : undefined,
             showImageSwatch: v.show_image_swatch || false,
             active: v.active ?? true,
             sortOrder: v.sort_order || 0
@@ -182,6 +163,7 @@ export async function POST(request: NextRequest) {
       const cat = product.category_id ? categoryMap[product.category_id] : null;
       const categoryName = cat?.name;
       const categorySlug = cat?.slug;
+      const categoryData = cat ? { ...cat } : undefined;
 
       exportedProducts.push({
         name: product.name,
@@ -202,6 +184,7 @@ export async function POST(request: NextRequest) {
         tags: product.tags || [],
         categoryName,
         categorySlug,
+        categoryData,
         images: validImages,
         variants,
         modifiers

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, X, Image as ImageIcon, Zap, Loader2, FolderOpen } from '@/components/common/Icons';
+import { Plus, Edit, Trash2, X, Image as ImageIcon, Zap, Loader2, FolderOpen, Download, Upload } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
 import { createCategory, updateCategory, deleteCategory } from '@/lib/services/categories';
 import { createClient } from '@/lib/supabase/client';
@@ -10,6 +10,49 @@ import { toast } from 'sonner';
 import MediaSelectorModal from './MediaSelectorModal';
 import RichTextEditor from './RichTextEditor';
 import { getClientSiteUrl } from '@/lib/site-url';
+
+const isOwnStorageUrl = (url: string) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return false;
+  
+  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
+  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
+  
+  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
+};
+
+const processImageUrl = async (url: string, prefix: string): Promise<string> => {
+  if (!url) return url;
+  if (isOwnStorageUrl(url)) return url; // Already in our bucket
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch image');
+    const blob = await res.blob();
+    
+    // Create a file from blob
+    const ext = blob.type.split('/')[1] || 'jpg';
+    const file = new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
+    
+    // Upload using supabase client directly
+    const supabase = createClient();
+    const fileName = `categories/${file.name}`;
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: true
+      });
+      
+    if (error) throw error;
+    
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Failed to download/upload image:', error);
+    return url; // Fallback to original URL if upload fails
+  }
+};
 
 interface CategoryManagerProps {
   initialCategories: Category[];
@@ -34,6 +77,8 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Always show AI button — guides user to settings if not configured
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
 
@@ -137,10 +182,97 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
     try {
       await deleteCategory(id);
       setCategories(prev => prev.filter(c => c.id !== id));
+      setSelectedCategoryIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success('Category moved to Trash successfully');
     } catch (err) {
       toast.error('Failed to move category to Trash');
     }
+  };
+
+  const handleExportJSON = () => {
+    try {
+      const toExport = selectedCategoryIds.size > 0
+        ? categories.filter(c => selectedCategoryIds.has(c.id) && c.id !== '00000000-0000-4000-8000-000000000099')
+        : categories.filter(c => c.id !== '00000000-0000-4000-8000-000000000099');
+      if (toExport.length === 0) return toast.error('No categories to export');
+      
+      const exportData = toExport.map(c => ({
+        name: c.name,
+        slug: c.slug,
+        description: c.description || null,
+        imageUrl: c.imageUrl || null,
+        sortOrder: c.sortOrder,
+        active: c.active
+      }));
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `categories-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setSelectedCategoryIds(new Set());
+      toast.success('Categories exported successfully.');
+    } catch {
+      toast.error('Failed to export categories');
+    }
+  };
+
+  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (!Array.isArray(json)) return toast.error('Invalid format. Must be a JSON array.');
+        
+        let imported = 0, updated = 0;
+        const newCategories = [...categories];
+        toast.info('Importing categories, please wait...');
+        
+        for (const item of json) {
+          if (!item.name || !item.slug) continue;
+          if (item.slug.toLowerCase() === 'shop') continue; // Skip importing system category
+          const existing = newCategories.find(c => c.slug.toLowerCase() === item.slug.toLowerCase());
+          
+          const payload = {
+            name: item.name,
+            slug: item.slug,
+            description: item.description || undefined,
+            imageUrl: item.imageUrl || undefined,
+            sortOrder: item.sortOrder || 0,
+            active: item.active ?? true
+          };
+
+          if (existing) {
+            const updatedCategory = await updateCategory(existing.id, payload);
+            const idx = newCategories.findIndex(c => c.id === existing.id);
+            if (idx !== -1) newCategories[idx] = updatedCategory;
+            updated++;
+          } else {
+            const created = await createCategory(payload);
+            newCategories.push(created);
+            imported++;
+          }
+        }
+        setCategories(newCategories);
+        toast.success(`Import complete: ${imported} created, ${updated} updated.`);
+      } catch {
+        toast.error('Failed to parse and import JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -234,39 +366,111 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
   return (
     <div className="space-y-6">
       {/* Header action */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleOpenNew}
-          className="flex items-center gap-1.5 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] text-white px-5 py-2.5 text-sm font-bold shadow-sm transition-all cursor-pointer"
-        >
-          <Plus className="h-4.5 w-4.5" />
-          <span>Add Category</span>
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {categories.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                const exportableCategories = categories.filter(c => c.id !== '00000000-0000-4000-8000-000000000099');
+                if (selectedCategoryIds.size === exportableCategories.length) {
+                  setSelectedCategoryIds(new Set());
+                } else {
+                  setSelectedCategoryIds(new Set(exportableCategories.map(c => c.id)));
+                }
+              }}
+              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+            >
+              {selectedCategoryIds.size > 0 && selectedCategoryIds.size === categories.filter(c => c.id !== '00000000-0000-4000-8000-000000000099').length ? 'Deselect All' : 'Select All'}
+            </button>
+          )}
+          {selectedCategoryIds.size > 0 && (
+            <span className="text-[10px] text-gray-400 font-semibold">{selectedCategoryIds.size} selected</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportJSON}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-800 hover:border-gray-350 dark:hover:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-800 hover:border-gray-350 dark:hover:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            Import
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportJSON}
+            accept=".json"
+            className="hidden"
+          />
+          <button
+            onClick={handleOpenNew}
+            className="flex items-center gap-1.5 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] text-white px-5 py-2.5 text-sm font-bold shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="h-4.5 w-4.5" />
+            <span>Add Category</span>
+          </button>
+        </div>
       </div>
 
       {/* Grid listing */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map(cat => (
           <div key={cat.id} className="bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between space-y-4 text-gray-900 dark:text-white transition-colors">
-            <Link href={`/admin/categories/${cat.id}`} className="group block flex-1">
+            <div className="block flex-1 group cursor-pointer" onClick={() => {
+              if (typeof window !== 'undefined' && window.getSelection()?.toString().length) return;
+              window.location.href = `/admin/categories/${cat.id}`;
+            }}>
               <div className="flex justify-between items-start">
-                <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors">
-                  {cat.name}
-                  {cat.id === '00000000-0000-4000-8000-000000000099' && (
-                    <span className="ml-2 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
+                <div className="flex items-start gap-3">
+                  {cat.id !== '00000000-0000-4000-8000-000000000099' ? (
+                    <input
+                      type="checkbox"
+                      checked={selectedCategoryIds.has(cat.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setSelectedCategoryIds(prev => {
+                          const next = new Set(prev);
+                          if (next.has(cat.id)) next.delete(cat.id);
+                          else next.add(cat.id);
+                          return next;
+                        });
+                      }}
+                      onClick={e => e.stopPropagation()}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] cursor-pointer flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 mt-1 flex-shrink-0" />
                   )}
-                </h3>
-                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md ${
+                  <div>
+                    <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors">
+                      {cat.name}
+                      {cat.id === '00000000-0000-4000-8000-000000000099' && (
+                        <span className="ml-2 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-semibold mt-1">Slug: {cat.slug}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md shrink-0 ${
                   cat.active ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-505'
                 }`}>
                   {cat.active ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 font-semibold mt-1">Slug: {cat.slug}</p>
               {cat.description && (
                 <div className="text-sm text-gray-600 dark:text-gray-400 mt-2.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: cat.description }} />
               )}
-            </Link>
+            </div>
 
             <div className="flex gap-2.5 pt-3 border-t border-gray-150 dark:border-gray-800 justify-end items-center">
               <Link

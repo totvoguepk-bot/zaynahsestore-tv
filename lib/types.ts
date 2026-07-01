@@ -711,6 +711,14 @@ export interface ExportedProduct {
   tags: string[];
   categoryName?: string;
   categorySlug?: string;
+  categoryData?: {
+    name: string;
+    slug: string;
+    description?: string;
+    imageUrl?: string;
+    sortOrder: number;
+    active: boolean;
+  };
   images: ExportedImage[];
   variants: ExportedVariant[];
   modifiers: ExportedModifier[];

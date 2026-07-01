@@ -88,14 +88,21 @@ export async function POST(request: NextRequest) {
                   categoryCache[p.categorySlug] = cat.id;
                 } else {
                   // Create category if it doesn't exist
-                  const catName = p.categoryName || 'Uncategorized';
+                  const catData = p.categoryData || {
+                    name: p.categoryName || 'Uncategorized',
+                    slug: p.categorySlug,
+                    active: true,
+                    sortOrder: 0
+                  };
                   const { data: newCat, error: catErr } = await supabaseAdmin
                     .from('categories')
                     .insert({
-                      name: catName,
-                      slug: p.categorySlug,
-                      active: true,
-                      sort_order: 0
+                      name: catData.name,
+                      slug: catData.slug,
+                      description: catData.description || null,
+                      image_url: catData.imageUrl || null,
+                      active: catData.active ?? true,
+                      sort_order: catData.sortOrder || 0
                     })
                     .select('id')
                     .single();
@@ -260,13 +267,15 @@ export async function POST(request: NextRequest) {
                         mime_type: img.mimeType || 'image/webp'
                       });
                   }
-                } else if (img.dataUrl) {
-                  const match = img.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-                  if (!match) continue;
-                  const mimeType = match[1];
-                  const base64Data = match[2];
-                  const buffer = Buffer.from(base64Data, 'base64');
-
+                } else if (img.originalUrl) {
+                  // Fetch the external image to our bucket
+                  const imageRes = await fetch(img.originalUrl);
+                  if (!imageRes.ok) throw new Error('Failed to fetch image from URL');
+                  
+                  const arrayBuffer = await imageRes.arrayBuffer();
+                  const buffer = Buffer.from(arrayBuffer);
+                  
+                  const mimeType = imageRes.headers.get('content-type') || 'image/webp';
                   const sanitizedProdName = finalName
                     .replace(/[^a-zA-Z0-9-_\s]/g, '')
                     .trim()
@@ -365,13 +374,13 @@ export async function POST(request: NextRequest) {
                       mime_type: 'image/webp'
                     });
                 }
-              } else if (v.imageDataUrl && v.imageMimeType) {
+              } else if (v.imageUrl) {
                 try {
-                  const match = v.imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
-                  if (match) {
-                    const mimeType = match[1];
-                    const base64Data = match[2];
-                    const buffer = Buffer.from(base64Data, 'base64');
+                  const varImgRes = await fetch(v.imageUrl);
+                  if (varImgRes.ok) {
+                    const arrayBuffer = await varImgRes.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const mimeType = varImgRes.headers.get('content-type') || 'image/webp';
 
                     const varExtension = mimeType.split('/').pop() || 'webp';
                     const timestamp = Date.now();
